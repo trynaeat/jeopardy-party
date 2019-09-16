@@ -1,0 +1,25 @@
+version: '3'
+services:
+  postgres:
+      build:
+          context: ./postgres
+          dockerfile: ./Dockerfile
+      dns:
+          - 127.0.0.1
+      ports:
+          - "5432:5432"
+      network_mode: "bridge"
+      volumes:
+          - ./postgres/data_persist:/var/lib/postgresql/data
+  server:
+    container_name: file-manager-server
+    build:
+      context: ./server
+      dockerfile: .docker/prod.dockerfile
+    dns:
+        - 127.0.0.1
+    network_mode: "bridge"
+    links:
+        - "postgres:postgres"
+    depends_on:
+        - postgres
