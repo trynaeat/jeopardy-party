@@ -7,6 +7,7 @@ import { initialize } from './auth/auth';
 import { router as loginRoutes } from './routes/login';
 import * as https from 'https';
 import * as fs from 'fs';
+import { Lobby, socketInitialize, User } from './models';
 
 const httpsOptions = {
   key: fs.readFileSync(`${__dirname}/../ssl/server.key`),
@@ -36,5 +37,8 @@ app.use(loginRoutes.routes())
 
 https.createServer(httpsOptions, app.callback())
   .listen(PORT, HOSTNAME);
+
+socketInitialize();
+
 
 console.log(`Server listening on port ${PORT}`);
