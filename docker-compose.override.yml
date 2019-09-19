@@ -1,5 +1,15 @@
 version: '3'
 services:
+  client:
+    build:
+      context: ./jeopardy-party-client
+      dockerfile: .docker/dev.dockerfile
+    image: jeopardy-client-dev
+    container_name: jeopardy-client-dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./jeopardy-party-client/src:/usr/src/app/src
   server:
     build:
       context: ./server
