@@ -5,6 +5,7 @@ import * as cors from '@koa/cors';
 import { config } from './config';
 import { initialize } from './auth/auth';
 import { router as loginRoutes } from './routes/login';
+import { router as gameRoutes } from './routes/game';
 import * as https from 'https';
 import * as fs from 'fs';
 import { Lobby, socketInitialize, User } from './models';
@@ -32,13 +33,16 @@ app.use(bodyParser());
 app.use(initialize());
 
 app.use(loginRoutes.routes())
+  .use(gameRoutes.routes())
   .use(router.routes())
   .use(router.allowedMethods());
 
 https.createServer(httpsOptions, app.callback())
   .listen(PORT, HOSTNAME);
 
-socketInitialize();
+const lobby = new Lobby();
+app.context.lobby = lobby;
+socketInitialize(lobby);
 
 
 console.log(`Server listening on port ${PORT}`);

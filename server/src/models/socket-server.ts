@@ -11,9 +11,8 @@ const HOSTNAME = '0.0.0.0';
 
 let server: Server;
 
-export const initialize = () =>  {
+export const initialize = (lobby: Lobby) =>  {
   const app = new Koa();
-  const lobby = new Lobby();
   const socketServer = http.createServer(app.callback());
   const io = socket(socketServer);
   server = io;
