@@ -1,0 +1,175 @@
+@import './variables.scss';
+@font-face {
+  font-family: 'GyparodyHv-Regular';
+  src: url('./fonts/GyparodyHv-Regular.eot?#iefix') format('embedded-opentype'),
+       url('./fonts/GyparodyHv-Regular.woff') format('woff'),
+       url('./fonts/GyparodyHv-Regular.ttf')  format('truetype'),
+       url('./fonts/GyparodyHv-Regular.svg#GyparodyHv-Regular') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KorinnaBold';
+  src: url('./fonts/KorinnaBold.eot?#iefix') format('embedded-opentype'),
+       url('./fonts/KorinnaBold.woff') format('woff'),
+       url('./fonts/KorinnaBold.ttf')  format('truetype'),
+       url('./fonts/KorinnaBold.svg#KorinnaBold') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+.absolute-center {
+  @include absolute-center;
+
+  &--top      { top: 30% !important; }
+  &--right    { left: 70% !important; }
+  &--bottom   { top: 70% !important; }
+  &--left     { left: 30% !important; }
+}
+.title-font {
+  @include title-font;
+}
+.clue-font {
+  @include clue-font;
+}
+.text-yellow {
+  color: $yellow;
+}
+.text-blue {
+  color: $bg-color;
+}
+.text-red {
+  color: $red;
+}
+.text-center {
+  text-align: center;
+}
+.text-left {
+  text-align: left;
+}
+.text-xlarge {
+  font-size: 120px;
+}
+.text-large {
+  font-size: 60px;
+}
+.text-medium {
+  font-size: 40px;
+}
+.text-small {
+  font-size: 20px;
+}
+
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently supported by Chrome and Opera */
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 1s;
+}
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+}
+.fade-in-enter-active {
+  transition: opacity 1s;
+}
+.fade-in-enter {
+  opacity: 0;
+}
+.slide-out-enter-active, .slide-out-leave-active {
+  transition: bottom 1s;
+}
+.slide-out-enter, .slide-out-leave-to {
+  bottom: -12px;
+}
+
+.emote-image {
+  max-width: 48px;
+  max-height: 48px;
+  width: auto;
+  height: auto;
+  vertical-align: middle;
+}
+
+.link {
+  @include clue-font;
+  color: $yellow;
+  font-size: 28px;
+  cursor: pointer;
+  transition: color .5s;
+  text-decoration: none;
+  &:hover {
+    color: lighten($yellow, 15%);
+  }
+  &:active {
+    position: relative;
+    top: 1px;
+    color: darken($yellow, 15%);
+  }
+  &--small {
+    font-size: 18px;
+  }
+}
+
+.flex {
+  @include flex;
+}
+.flex-fluid {
+  @include flex-fluid;
+}
+.flex-center-horizontal {
+  @include flex-center-horizontal;
+}
+.flex-center-vertical {
+  @include flex-center-vertical;
+}
+.flex-center {
+  @include flex-center-vertical;
+  @include flex-center-horizontal;
+}
+input {
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+}
+
+
+/**
+ * Margins
+ */
+$sides: ('top', 'left', 'right', 'bottom');
+.dbl-margin {
+  margin: $base-spacing;
+  @each $item in $sides {
+    &-#{$item} {
+      margin-#{$item}: 2 * $base-spacing;
+    }
+  }
+}
+.base-margin {
+  margin: $base-spacing;
+  @each $item in $sides {
+    &-#{$item} {
+      margin-#{$item}: $base-spacing;
+    }
+  }
+}
+.half-margin {
+  margin: .5 * $base-spacing;
+  @each $item in $sides {
+    &-#{$item} {
+      margin-#{$item}: .5 * $base-spacing;
+    }
+  }
+}
+.qtr-margin {
+  margin: .25 * $base-spacing;
+  @each $item in $sides {
+    &-#{$item} {
+      margin-#{$item}: .25 * $base-spacing;
+    }
+  }
+}
