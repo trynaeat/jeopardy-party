@@ -2,10 +2,10 @@ import { Socket } from 'socket.io';
 
 export class User {
   private _id: string; // Unique ID for user, taken from Socket id
-  private _username: string; // User's screen name
+  private _username?: string; // User's screen name
   private _socket: Socket; // Socket.io socket associated with user
 
-  constructor(id: string, username: string, socket: Socket) {
+  constructor(id: string, socket: Socket, username?: string,) {
     this._id = id;
     this._username = username;
     this._socket = socket;

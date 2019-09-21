@@ -17,15 +17,11 @@ export const initialize = (lobby: Lobby) =>  {
   const io = socket(socketServer);
   server = io;
   io.on('connection', socket => {
-    console.log('New user connected');
-    socket.on('register_user', (username: string) => {
-      const user = new User(socket.id, username, socket);
-      lobby.addUser(user);
-    });
+    lobby.addUser(new User(socket.id, socket));
     socket.on('test', (userId: string) => {
       console.log(`test recieved from user ${userId}`);
       socket.broadcast.emit('ack');
-    })
+    });
   });
 
   socketServer.listen(SOCKET_PORT, HOSTNAME);

@@ -25,12 +25,14 @@ export class Lobby {
   }
 
   private listenToUser(user: User) {
-    user.socket.on('join_room', (roomId: string) => {
+    console.log(`New User Registered ${user.id}`);
+    user.socket.on('game_join', (roomId: string) => {
       user.socket.leaveAll();
       const room = this.rooms.find(room => room.id === roomId);
       if (room) {
         return room.addUser(user);
       }
+      console.log('error joining room');
       user.socket.emit('room_error', 'Attempted to join an invalid room.');
     });
   }

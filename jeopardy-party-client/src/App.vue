@@ -33,5 +33,23 @@ export default Vue.extend({
   components: {
     Toast,
   },
+  sockets: {
+    connect: function() {
+      console.log('connected!');
+      this.$store.commit('pushToast', {
+        status: 'info',
+        message: 'Connected to game server',
+        title: 'Socket Connect',
+      });
+    },
+    disconnect: function() {
+      console.error('disconnected!');
+      this.$store.commit('pushToast', {
+        status: 'error',
+        message: 'Your connection to the game server was disrupted',
+        title: 'Socket Disconnect',
+      });
+    }
+  },
 });
 </script>

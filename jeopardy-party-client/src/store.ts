@@ -26,7 +26,16 @@ const store: StoreOptions<RootState> = {
     },
   },
   actions: {
-
+    SOCKET_room_error(state, message) {
+      this.commit('pushToast', {
+        status: 'error',
+        message,
+        title: 'Error from Game Room',
+      });
+    },
+    SOCKET_sync(state) {
+      console.log('game sync!');
+    },
   },
 };
 
