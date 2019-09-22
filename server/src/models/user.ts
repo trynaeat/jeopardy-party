@@ -23,3 +23,15 @@ export class User {
     return this._socket;
   }
 }
+
+export class SanitizedUser {
+  private _username?: string;
+
+  get username(): string {
+    return this._username;
+  }
+
+  constructor (user: User) {
+    this._username = user.username;
+  }
+}

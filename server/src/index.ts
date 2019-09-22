@@ -9,6 +9,7 @@ import { router as gameRoutes } from './routes/game';
 import * as https from 'https';
 import * as fs from 'fs';
 import { Lobby, socketInitialize, User } from './models';
+import { Pool } from 'pg';
 
 const httpsOptions = {
   key: fs.readFileSync(`${__dirname}/../ssl/server.key`),
@@ -42,6 +43,9 @@ https.createServer(httpsOptions, app.callback())
 
 const lobby = new Lobby();
 app.context.lobby = lobby;
+const db = new Pool(config.db);
+console.log('DB Connected');
+app.context.db = db;
 socketInitialize(lobby);
 
 
