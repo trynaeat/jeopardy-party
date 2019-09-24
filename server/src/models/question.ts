@@ -9,6 +9,8 @@ export class Question {
     public showNumber: number;
     public isDailyDouble: boolean;
     public year: number;
+    public airDate: Date;
+    public disabled?: boolean;
 }
 
 /**
@@ -21,6 +23,7 @@ export class SanitizedQuestion {
     public round: Round;
     public showNumber: number;
     public year: number;
+    public disabled?: boolean;
 
     constructor(question: Question) {
         this.category = question.category;
@@ -29,5 +32,6 @@ export class SanitizedQuestion {
         this.round = question.round;
         this.showNumber = question.showNumber;
         this.year = question.year;
+        this.disabled = question.disabled;
     }
 }

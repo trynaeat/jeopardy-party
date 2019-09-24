@@ -1,25 +1,22 @@
 <template>
-  <div class="grid-container">
-    <div class="grid grid--category grid-6-col">
-      <Card v-for="(cat, index) in categories" :key="index" :text="cat" textSmall="true"></Card>
+  <div class="container-fluid">
+    <div class="top-board row row--category">
+        <div v-for="(cat, index) in categories" :key="index" class="col">
+            <Card :text="cat" textSmall="true"></Card>
+        </div>
     </div>
-    <!-- <div class="grid grid--question" v-bind:class="{
-      'grid-5-col': questions.length === 24,
-      'grid-6-col': questions.length === 30,
-    }">
-      <Card v-for="(q, index) in questions"
-        :key="index"
-        v-bind:text="q.value"
-        v-bind:clickable="game.state === 'PRE_START' || isActive"
-        v-bind:answered="q.answered"
-        v-bind:disabled="q.disabled"
-        v-bind:highlighted="game.currentQuestion
-          && q.question === game.currentQuestion.question
-          && game.showPickedTile"
-        v-on:click.native="onQuestionClick(q)"
-        textColor="yellow">
-      </Card>
-    </div> -->
+    <div class="main-board dbl-margin-top">
+        <div class="row row--question" v-for="n in 5" :key="n">
+            <div class="col" v-for="(cat, index) in categories" :key="index">
+                <Card v-bind:text="board[cat][n - 1] && board[cat][n - 1].value"
+                    v-bind:answered="board[cat][n - 1].answered"
+                    v-bind:disabled="board[cat][n - 1].disabled"
+                    v-bind:clickable="clickable"
+                    textColor="yellow">
+                </Card>
+            </div>
+        </div>
+    </div>
   </div>
 </template>
 
@@ -31,13 +28,21 @@ import Card from './Card.vue';
 
 export default Vue.extend({
   name: 'GameBoard',
+  props: {
+    clickable: Boolean,
+  },
   components: {
       Card,
   },
   computed: {
       ...mapState({
+          board: (state: any) => _.get(state.board, state.round, { }),
           round: (state: any) => state.round,
-          categories: (state: any) => _.keys(state.board[state.round]),
+          categories: (state: any) => _.keys(_.get(state.board, state.round, [])),
+          gridClass: (state: any) => {
+              const categories = _.keys(_.get(state.board, state.round, []));
+              return categories ? `grid-${categories.length}-col` : '';
+          }
       }),
   },
 });
@@ -45,31 +50,32 @@ export default Vue.extend({
 
 <style scoped lang="scss">
 @import '../assets/variables.scss';
-.grid {
-  display: grid;
-  grid-gap: 10px;
-  &.grid-5-col {
-    grid-template-columns: repeat(5, 1fr);
-  }
-  &.grid-6-col {
-    grid-template-columns: repeat(6, 1fr);
-  }
-  width: calc(100% - 20px);
-  padding: 10px;
-  grid-auto-flow: column;
-  background: black;
-  &--category {
+.row {
+  padding: 5px;
+  &--category .card {
     height: 13vh;
     padding-bottom: 0;
-    grid-template-rows: repeat(1, 1fr);
   }
-  &--question {
-    height: 70vh;
+  &--question .card {
+    height: 13vh;
     padding-top: 13px;
-    grid-template-rows: repeat(5, 1fr);
   }
   &-container {
     @include shadow;
   }
+}
+.col {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+.container-fluid {
+    height: 100vh;
+}
+.main-board, .top-board {
+    background: black;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 </style>

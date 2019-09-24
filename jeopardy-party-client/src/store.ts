@@ -1,16 +1,21 @@
 import Vue from 'vue';
 import Vuex, { StoreOptions } from 'vuex';
-import { GameBoard, GameState, Role, RootState, Round, Toast } from './interfaces';
+import { GameBoard, GameState, GameStep, Role, RootState, Round, Toast } from './interfaces';
 import * as _ from 'lodash-es';
 
 Vue.use(Vuex);
 
+/**
+ * Note anything with the STORE_ prefix gets called automagically by vue-socket.io
+ * when a matching event arrives.
+ */
 const store: StoreOptions<RootState> = {
   state: {
     toasts: [],
     role: Role.SPECTATOR,
     board: null,
     round: Round.JEOPARDY,
+    currentState: GameStep.PRE_GAME,
   },
   mutations: {
     pushToast(state, toast: Toast) {
@@ -24,11 +29,12 @@ const store: StoreOptions<RootState> = {
     closeToast(state, toast: Toast) {
       const index = _.indexOf(state.toasts, toast);
       state.toasts.splice(index, 1);
-      _.remove(state.toasts, (o: Toast) => o === toast);
-      state.toasts = _.clone(state.toasts); // trigger change detection
     },
     setBoard(state, board: GameBoard) {
       state.board = board;
+    },
+    setCurrentState(state, step: GameStep) {
+      state.currentState = step;
     },
     SOCKET_role(state, role: Role) {
       state.role = role;
@@ -45,6 +51,7 @@ const store: StoreOptions<RootState> = {
     SOCKET_sync(state, gameState: GameState) {
       console.log('game sync!');
       this.commit('setBoard', gameState.board);
+      this.commit('setCurrentState', gameState.state);
     },
   },
 };

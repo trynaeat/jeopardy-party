@@ -1,7 +1,7 @@
 <template>
   <div>
     <h1>You're a host</h1>
-    <GameBoard></GameBoard>
+    <GameBoard :clickable="true"></GameBoard>
   </div>
 </template>
 
