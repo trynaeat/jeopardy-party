@@ -19,6 +19,10 @@ export class User {
     return this._username;
   }
 
+  set username(username: string) {
+    this._username = username;
+  }
+
   get socket(): Socket {
     return this._socket;
   }

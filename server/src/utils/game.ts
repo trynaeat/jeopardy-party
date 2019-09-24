@@ -67,13 +67,15 @@ function buildCategory(round: Round, category: Question[]) {
     }
     const values = getValues(round, category);
     const map = { } as { [key: number]: Question };
+    // first pass, fill in all regular questions that we have for the category
     _.each(values, value => {
         map[value] = _.find(category, { value });
         _.remove(category, q => q.value === value);
     });
+    // fill in any daily doubles (leftover Q's) or disabled questions for those we don't have
     _.each(values, value => {
-        // this can happen if the question was a daily double
         if (!map[value]) {
+            // this can happen if the question was a daily double
             if(category.length) {
                 map[value] = _.assign(_.head(category), { value });
                 category.shift();

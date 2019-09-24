@@ -1,5 +1,6 @@
 import { User } from './user';
 import { Game } from './game';
+import { Role } from './role';
 import { socketServer } from './socket-server';
 import * as _ from 'lodash';
 
@@ -42,6 +43,17 @@ export class Room {
     user.socket.on('chat', (message: string) => {
       socketServer().to(`room_${this._id}`)
         .emit('message', user.username, message);
+    });
+    user.socket.on('request_role', (role: Role, username: string) => {
+      if (role === Role.PLAYER) {
+        const added = this._game.addPlayer(user);
+        if (added) {
+          user.username = username;
+          user.socket.emit('role', Role.PLAYER);
+        } else {
+          user.socket.emit('room_error', 'Players are full!');
+        }
+      }
     });
     user.socket.on('disconnect', () => {
       this.removeUser(user);

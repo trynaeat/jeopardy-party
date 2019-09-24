@@ -2,6 +2,8 @@
   <div>
     <Host v-if="role === 'host'"></Host>
     <Spectator v-if="role === 'spectator'"></Spectator>
+    <Player v-if="role === 'player'"></Player>
+    <Players></Players>
   </div>
 </template>
 
@@ -10,12 +12,16 @@ import { mapState } from 'vuex';
 import Vue from 'vue';
 import Host from '@/components/Host.vue';
 import Spectator from '@/components/Spectator.vue';
+import Player from '@/components/Player.vue';
+import Players from '@/components/Players.vue';
 
 export default Vue.extend({
   name: 'PlayGame',
   components: {
     Host,
     Spectator,
+    Player,
+    Players,
   },
   mounted: function() {
     console.log('joining...');

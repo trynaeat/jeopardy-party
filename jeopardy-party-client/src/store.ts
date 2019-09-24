@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import Vuex, { StoreOptions } from 'vuex';
-import { GameBoard, GameState, GameStep, Role, RootState, Round, Toast } from './interfaces';
+import { GameBoard, GameState, GameStep, Role, RootState, Round, Toast, User } from './interfaces';
 import * as _ from 'lodash-es';
 
 Vue.use(Vuex);
@@ -16,6 +16,8 @@ const store: StoreOptions<RootState> = {
     board: null,
     round: Round.JEOPARDY,
     currentState: GameStep.PRE_GAME,
+    currentUser: undefined,
+    players: [],
   },
   mutations: {
     pushToast(state, toast: Toast) {
@@ -36,6 +38,12 @@ const store: StoreOptions<RootState> = {
     setCurrentState(state, step: GameStep) {
       state.currentState = step;
     },
+    setCurrentUser(state, user: User) {
+      state.currentUser = user;
+    },
+    setPlayers(state, players: User[]) {
+      state.players = players;
+    },
     SOCKET_role(state, role: Role) {
       state.role = role;
     },
@@ -52,6 +60,7 @@ const store: StoreOptions<RootState> = {
       console.log('game sync!');
       this.commit('setBoard', gameState.board);
       this.commit('setCurrentState', gameState.state);
+      this.commit('setPlayers', gameState.players);
     },
   },
 };

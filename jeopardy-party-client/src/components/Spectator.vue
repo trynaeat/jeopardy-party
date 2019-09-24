@@ -5,7 +5,7 @@
       <span>Waiting for game...</span>
     </template>
     <template v-if="currentState === 'awaitPlayers'">
-      <span>Awaiting Players</span>
+      <PlayerJoin></PlayerJoin>
     </template>
     <template v-if="currentState === 'questionBoard'">
       <GameBoard :clickable="false"></GameBoard>
@@ -17,12 +17,14 @@
 import Vue from 'vue';
 import { mapState } from 'vuex';
 import GameBoard from './GameBoard.vue';
+import PlayerJoin from './PlayerJoin.vue';
 import * as _ from 'lodash-es';
 
 export default Vue.extend({
   name: 'Spectator',
   components: {
     GameBoard,
+    PlayerJoin,
   },
   computed: {
     ...mapState({

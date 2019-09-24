@@ -70,6 +70,8 @@ export default Vue.extend({
 }
 .container-fluid {
     height: 100vh;
+    padding-bottom: 0px;
+    margin-bottom: 0px;
 }
 .main-board, .top-board {
     background: black;
