@@ -29,13 +29,9 @@ export class User {
 }
 
 export class SanitizedUser {
-  private _username?: string;
-
-  get username(): string {
-    return this._username;
-  }
+  public username?: string;
 
   constructor (user: User) {
-    this._username = user.username;
+    this.username = user.username;
   }
 }

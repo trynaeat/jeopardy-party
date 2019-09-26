@@ -1,9 +1,10 @@
 <template>
 <svg xmlns="http://www.w3.org/2000/svg" 
-    width="100px" 
-    height="100px" 
+    :width="width"
+    :height="height"
     viewBox="0 0 210 291"
     role="presentation"
+    preserveAspectRatio="none"
   >
   <defs
      id="defs2">
@@ -107,3 +108,15 @@ vmkAAAAASUVORK5CYII=
   </g>
     </svg>
 </template>
+
+<script lang="ts">
+import Vue from 'vue';
+
+export default Vue.extend({
+  name: 'IconPodium',
+  props: {
+     height: String,
+     width: String,
+  },
+})
+</script>

@@ -17,6 +17,9 @@
             </div>
         </div>
     </div>
+    <div class="base-margin-top">
+      <Players></Players>
+    </div>
   </div>
 </template>
 
@@ -25,6 +28,7 @@ import Vue from 'vue';
 import { mapState } from 'vuex';
 import * as _ from 'lodash-es';
 import Card from './Card.vue';
+import Players from './Players.vue';
 
 export default Vue.extend({
   name: 'GameBoard',
@@ -33,6 +37,7 @@ export default Vue.extend({
   },
   components: {
       Card,
+      Players,
   },
   computed: {
       ...mapState({
@@ -53,11 +58,11 @@ export default Vue.extend({
 .row {
   padding: 5px;
   &--category .card {
-    height: 13vh;
+    height: 10vh;
     padding-bottom: 0;
   }
   &--question .card {
-    height: 13vh;
+    height: 10vh;
     padding-top: 13px;
   }
   &-container {
@@ -69,7 +74,6 @@ export default Vue.extend({
     padding-right: 5px;
 }
 .container-fluid {
-    height: 100vh;
     padding-bottom: 0px;
     margin-bottom: 0px;
 }

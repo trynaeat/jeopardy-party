@@ -3,7 +3,6 @@
     <Host v-if="role === 'host'"></Host>
     <Spectator v-if="role === 'spectator'"></Spectator>
     <Player v-if="role === 'player'"></Player>
-    <Players></Players>
   </div>
 </template>
 

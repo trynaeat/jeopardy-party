@@ -30,10 +30,11 @@ export class Game {
         this.board = board;
     }
 
-    public addPlayer(user: User) {
+    public addPlayer(user: User, username: string) {
         if (this.players.length >= 3) {
             return false;
         }
+        user.username = username;
         this.players.push(user);
         user.socket.join(`room_${this._roomId}_players`);
         user.socket.emit('role', Role.PLAYER);
@@ -41,6 +42,9 @@ export class Game {
         user.socket.on('disconnect', () => {
             this.removePlayer(user);
         });
+        if (this.players.length >= 3 && this.fsm.can('startGame')) {
+            this.fsm.startGame();
+        }
         this.syncAll();
         return true;
     }
@@ -110,6 +114,7 @@ export class Game {
      */
     private syncAll() {
         const state = new GameUpdate(this);
+        console.log(state);
         socketServer().to(`room_${this._roomId}`).emit('sync', state);
     }
 }

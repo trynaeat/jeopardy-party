@@ -46,9 +46,8 @@ export class Room {
     });
     user.socket.on('request_role', (role: Role, username: string) => {
       if (role === Role.PLAYER) {
-        const added = this._game.addPlayer(user);
+        const added = this._game.addPlayer(user, username);
         if (added) {
-          user.username = username;
           user.socket.emit('role', Role.PLAYER);
         } else {
           user.socket.emit('room_error', 'Players are full!');
