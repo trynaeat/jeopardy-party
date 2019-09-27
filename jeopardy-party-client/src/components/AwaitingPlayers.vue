@@ -6,6 +6,9 @@
             <div class="panel" v-if="role === 'spectator'">
                 <PlayerJoin></PlayerJoin>
             </div>
+            <div class="panel" v-if="role === 'host'">
+                <button @click="startGame()" :disabled="players.length < 2">Start Game</button>
+            </div>
         </div>
     </div>
 </template>
@@ -23,7 +26,13 @@ export default Vue.extend({
   computed: {
       ...mapState({
           role: (state: any) => state.role,
+          players: (state: any) => state.players,
       }),
+  },
+  methods: {
+      startGame () {
+          this.$socket.emit('startGame');
+      },
   },
 });
 </script>

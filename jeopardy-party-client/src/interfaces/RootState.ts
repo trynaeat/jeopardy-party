@@ -4,6 +4,7 @@ import { GameBoard } from './GameBoard';
 import { Round } from './Round';
 import { GameStep } from './GameState';
 import { User } from './User';
+import { Question } from './Question';
 
 export interface RootState {
     toasts: Toast[];
@@ -13,4 +14,6 @@ export interface RootState {
     currentState: GameStep;
     players: User[];
     currentUser?: User;
+    activeQuestion?: Question;
+    activePlayer?: User;
 }

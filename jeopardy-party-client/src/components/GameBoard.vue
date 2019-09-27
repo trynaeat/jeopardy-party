@@ -12,7 +12,8 @@
                     v-bind:answered="board[cat][n - 1].answered"
                     v-bind:disabled="board[cat][n - 1].disabled"
                     v-bind:clickable="clickable"
-                    textColor="yellow">
+                    textColor="yellow"
+                    @click.native="selectQuestion(cat, n)">
                 </Card>
             </div>
         </div>
@@ -49,6 +50,13 @@ export default Vue.extend({
               return categories ? `grid-${categories.length}-col` : '';
           }
       }),
+  },
+  methods: {
+    selectQuestion(category: string, qNum: number) {
+      if (this.clickable) {
+        this.$socket.emit('selectQuestion', category, qNum - 1);
+      }
+    },
   },
 });
 </script>

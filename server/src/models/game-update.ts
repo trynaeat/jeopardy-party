@@ -11,6 +11,8 @@ import { SanitizedQuestion } from './question';
  * (Fun fact, trying to send a socket reference over the socket causes a stack overflow)
  */
 export class GameUpdate {
+    public activeQuestion?: SanitizedQuestion;
+    public activePlayer?: SanitizedUser;
     public host: SanitizedUser;
     public judge: SanitizedUser;
     public players: SanitizedUser[];
@@ -22,6 +24,8 @@ export class GameUpdate {
         this.host = game.host && new SanitizedUser(game.host);
         this.judge = game.judge && new SanitizedUser(game.judge);
         this.players = game.players.map(user => new SanitizedUser(user));
+        this.activeQuestion = game.activeQuestion ? new SanitizedQuestion(game.activeQuestion) : null;
+        this.activePlayer = game.activePlayer ? new SanitizedUser(game.activePlayer) : null;
         this.board = _.mapValues(game.board, round => {
             return _.mapValues(round, questions => {
                 return _.map(questions, q => {

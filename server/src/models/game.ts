@@ -2,14 +2,18 @@ import * as StateMachine from 'javascript-state-machine';
 import { GameBoard } from './game-board';
 import { Round } from './round';
 import { User } from './user';
+import { HostAction } from './host-action';
 import { PlayerAction } from './player-action';
 import { GameUpdate } from './game-update';
 import { Role } from './role';
 import * as _ from 'lodash';
 import { socketServer } from './socket-server';
+import { Question } from './question';
 
 export class Game {
     private _roomId: string;
+    public activeQuestion: Question;
+    public activePlayer: User;
     public board: GameBoard;
     public round = Round.JEOPARDY;
     public host: User;
@@ -42,9 +46,6 @@ export class Game {
         user.socket.on('disconnect', () => {
             this.removePlayer(user);
         });
-        if (this.players.length >= 3 && this.fsm.can('startGame')) {
-            this.fsm.startGame();
-        }
         this.syncAll();
         return true;
     }
@@ -57,7 +58,7 @@ export class Game {
     }
 
     private listenToPlayer(user: User) {
-        user.socket.on('playerAction', (action: PlayerAction, options: Object) => {
+        user.socket.on('playerAction', (action: PlayerAction, options: any) => {
             switch(action) {
                 case PlayerAction.BUZZ_IN:
                     if (this.fsm.can('buzzIn')) {
@@ -106,7 +107,20 @@ export class Game {
     }
 
     private listenToHost(user: User) {
-
+        user.socket.on(HostAction.START_GAME, () => {
+            if (this.players.length >= 2 && this.fsm.can('startGame')) {
+                this.activePlayer = this.players[0];
+                this.fsm.startGame();
+                this.syncAll();
+            }
+        });
+        user.socket.on(HostAction.SELECT_QUESTION, (category: string, qNum: number) => {
+            if (this.fsm.can('selectQuestion')) {
+                this.activeQuestion = this.selectQuestion(category, qNum);
+                this.fsm.selectQuestion();
+                this.syncAll();
+            }
+        });
     }
 
     /**
@@ -114,7 +128,17 @@ export class Game {
      */
     private syncAll() {
         const state = new GameUpdate(this);
-        console.log(state);
         socketServer().to(`room_${this._roomId}`).emit('sync', state);
+    }
+
+    /**
+     * Select a question from the board, given category and q number (top to bottom)
+     * @param catNum 
+     * @param qNum 
+     */
+    private selectQuestion (category: string, qNum: number) {
+        console.log(category);
+        console.log(qNum);
+        return this.board[this.round][category][qNum];
     }
 }
