@@ -8,7 +8,7 @@
       <GameBoard :clickable="false"></GameBoard>
       <AwaitingPlayers v-if="currentState === 'awaitPlayers'"></AwaitingPlayers>
     </template>
-    <QuestionPrompt v-if="currentState === 'readQuestion'"></QuestionPrompt>
+    <QuestionPrompt v-if="currentState === 'readQuestion' || currentState === 'playerAnswer' || currentState === 'judgingAnswer'"></QuestionPrompt>
   </div>
 </template>
 

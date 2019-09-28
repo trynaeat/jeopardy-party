@@ -1,7 +1,9 @@
 <template>
   <div class="main">
+      <h2 v-if="currentState === 'judgingAnswer'">Judging Answer...</h2>
+      <h2 v-if="currentState === 'playerAnswer'">Currently Answering: {{ activePlayer.username }}</h2>
       <div class="flex-fluid">
-          <div>
+          <div class="flex-fluid inner">
             <p v-html="activeQuestion.question"></p>
         </div>
       </div>
@@ -22,6 +24,8 @@ export default Vue.extend({
   computed: {
       ...mapState({
           activeQuestion: (state: any) => state.activeQuestion,
+          activePlayer: (state: any) => state.activePlayer,
+          currentState: (state: any) => state.currentState,
           role: (state: any) => state.role,
       }),
   },
@@ -44,5 +48,8 @@ div.main {
 div.flex-fluid {
     display: flex;
     align-items: center;
+}
+.inner {
+    flex-direction: column;
 }
 </style>

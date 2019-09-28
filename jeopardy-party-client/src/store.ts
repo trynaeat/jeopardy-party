@@ -1,9 +1,14 @@
 import Vue from 'vue';
 import Vuex, { StoreOptions } from 'vuex';
-import { GameBoard, GameState, GameStep, Question, Role, RootState, Round, Toast, User } from './interfaces';
+import { GameBoard, GameState, GameStep, Question, Role, RootState, Round, ITimer, Toast, User } from './interfaces';
+import { Timer } from './utils/Timer';
 import * as _ from 'lodash-es';
+import { Subscription } from 'rxjs';
 
 Vue.use(Vuex);
+
+let timerSub: Subscription;
+let buzzerTimer: Timer;
 
 /**
  * Note anything with the STORE_ prefix gets called automagically by vue-socket.io
@@ -20,6 +25,7 @@ const store: StoreOptions<RootState> = {
     players: [],
     activeQuestion: undefined,
     activePlayer: undefined,
+    buzzerTimer: undefined,
   },
   mutations: {
     pushToast(state, toast: Toast) {
@@ -52,6 +58,9 @@ const store: StoreOptions<RootState> = {
     setActiveQuestion(state, question: Question) {
       state.activeQuestion = question;
     },
+    setBuzzerTimer(state, timer: ITimer) {
+      state.buzzerTimer = timer;
+    },
     SOCKET_role(state, role: Role) {
       state.role = role;
     },
@@ -71,6 +80,24 @@ const store: StoreOptions<RootState> = {
       this.commit('setPlayers', gameState.players);
       this.commit('setActivePlayer', gameState.activePlayer);
       this.commit('setActiveQuestion', gameState.activeQuestion);
+      if (buzzerTimer) {
+        buzzerTimer.stopTimer();
+      }
+      this.commit('setBuzzerTimer', gameState.buzzerTimer);
+      // Start local timer and count down
+      if (gameState.buzzerTimer) {
+        buzzerTimer = new Timer(gameState.buzzerTimer.timeRemaining, 100);
+        if (timerSub) {
+          timerSub.unsubscribe();
+        }
+        timerSub = buzzerTimer.timer$.subscribe(
+          (timeRemaining: number) => {
+            this.commit('setBuzzerTimer', { timeRemaining, timeLimit: buzzerTimer.timeLimit });
+          },
+        );
+        buzzerTimer.startTimer();
+      }
+
     },
   },
 };

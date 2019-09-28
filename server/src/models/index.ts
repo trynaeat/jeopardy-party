@@ -5,4 +5,5 @@ export { SanitizedUser, User } from './user';
 export { Question, SanitizedQuestion } from './question';
 export { Game } from './game';
 export { Round } from './round';
+export { Timer, SanitizedTimer } from './timer';
 export { GameBoard, SanitizedGameBoard } from './game-board';

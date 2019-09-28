@@ -3,6 +3,7 @@ import { SanitizedUser } from './user';
 import { SanitizedGameBoard } from './game-board';
 import * as _ from 'lodash';
 import { SanitizedQuestion } from './question';
+import { SanitizedTimer } from './timer';
 
 /**
  * All of the game state that gets sent as an update to users to sync them
@@ -18,6 +19,8 @@ export class GameUpdate {
     public players: SanitizedUser[];
     public board: SanitizedGameBoard;
     public state: string;
+    public buzzerTimer: SanitizedTimer;
+    public gameTimer: SanitizedTimer;
 
     constructor(game: Game) {
         this.state = game.fsm.state;
@@ -26,6 +29,8 @@ export class GameUpdate {
         this.players = game.players.map(user => new SanitizedUser(user));
         this.activeQuestion = game.activeQuestion ? new SanitizedQuestion(game.activeQuestion) : null;
         this.activePlayer = game.activePlayer ? new SanitizedUser(game.activePlayer) : null;
+        this.buzzerTimer = game.buzzerTimer ? new SanitizedTimer(game.buzzerTimer) : null;
+        this.gameTimer = game.gameTimer ? new SanitizedTimer(game.gameTimer) : null;
         this.board = _.mapValues(game.board, round => {
             return _.mapValues(round, questions => {
                 return _.map(questions, q => {

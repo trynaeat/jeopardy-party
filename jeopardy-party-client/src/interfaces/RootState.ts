@@ -5,6 +5,7 @@ import { Round } from './Round';
 import { GameStep } from './GameState';
 import { User } from './User';
 import { Question } from './Question';
+import { ITimer } from './Timer';
 
 export interface RootState {
     toasts: Toast[];
@@ -16,4 +17,5 @@ export interface RootState {
     currentUser?: User;
     activeQuestion?: Question;
     activePlayer?: User;
+    buzzerTimer?: ITimer;
 }

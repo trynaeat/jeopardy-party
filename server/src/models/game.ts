@@ -6,6 +6,7 @@ import { HostAction } from './host-action';
 import { PlayerAction } from './player-action';
 import { GameUpdate } from './game-update';
 import { Role } from './role';
+import { Timer } from './timer';
 import * as _ from 'lodash';
 import { socketServer } from './socket-server';
 import { Question } from './question';
@@ -19,13 +20,20 @@ export class Game {
     public host: User;
     public judge: User;
     public players: User[] = [];
+    public buzzerTimer: Timer;
+    public gameTimer: Timer;
     private spectators: User[] = [];
     public fsm = new StateMachine({
         init: 'awaitPlayers',
         transitions: [
             { name: 'startGame', from: 'awaitPlayers', to: 'questionBoard' },
             { name: 'selectQuestion', from: 'questionBoard', to: 'readQuestion' },
-            { name: 'buzzIn', from: 'readQuestion', to: 'answerQuestion' },
+            { name: 'buzzIn', from: 'readQuestion', to: 'playerAnswer' },
+            { name: 'judgeAnswer', from: 'playerAnswer', to: 'judgingAnswer' },
+            { name: 'questionFail', from: 'judgingAnswer', to: 'readQuestion' },
+            { name: 'showAnswer', from: 'judgingAnswer', to: 'showingAnswer' },
+            { name: 'returnToBoard', from: 'showingAnswer', to: 'questionBoard' },
+            { name: 'advanceRound', from: 'showAnswer', to: 'roundAdvance' },
         ],
     });
 
@@ -63,6 +71,20 @@ export class Game {
                 case PlayerAction.BUZZ_IN:
                     if (this.fsm.can('buzzIn')) {
                         this.fsm.buzzIn();
+                        this.activePlayer = user;
+                        this.buzzerTimer && this.buzzerTimer.resetTimer();
+                        this.buzzerTimer = new Timer(5000, 100);
+                        const sub = this.buzzerTimer.timer$.subscribe(timeRemaining => {
+                            // Time's up! Go to judging answer.
+                            if (timeRemaining < 1) {
+                                this.fsm.judgeAnswer();
+                                sub.unsubscribe();
+                                this.buzzerTimer = null;
+                                this.syncAll();
+                            }
+                        });
+                        this.syncAll();
+                        this.buzzerTimer.startTimer();
                     }
             }
         });
