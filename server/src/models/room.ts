@@ -53,6 +53,14 @@ export class Room {
           user.socket.emit('room_error', 'Players are full!');
         }
       }
+      if (role === Role.JUDGE) {
+        if (!this._game.judge) {
+          this._game.setJudge(user);
+          user.socket.emit('role', Role.JUDGE);
+        } else {
+          user.socket.emit('room_error', 'Judge is taken!');
+        }
+      }
     });
     user.socket.on('disconnect', () => {
       this.removeUser(user);

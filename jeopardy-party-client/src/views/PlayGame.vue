@@ -3,6 +3,7 @@
     <Host v-if="role === 'host'"></Host>
     <Spectator v-if="role === 'spectator'"></Spectator>
     <Player v-if="role === 'player'"></Player>
+    <Judge v-if="role === 'judge'"></Judge>
   </div>
 </template>
 
@@ -12,6 +13,7 @@ import Vue from 'vue';
 import Host from '@/components/Host.vue';
 import Spectator from '@/components/Spectator.vue';
 import Player from '@/components/Player.vue';
+import Judge from '@/components/Judge.vue';
 import Players from '@/components/Players.vue';
 
 export default Vue.extend({
@@ -20,6 +22,7 @@ export default Vue.extend({
     Host,
     Spectator,
     Player,
+    Judge,
     Players,
   },
   mounted: function() {

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <form @submit.prevent="onSubmit()">
+    <form v-if="players.length < 3" @submit.prevent="onSubmit()">
       <h3>Join Game as a Player</h3>
       <label for="name">Username:</label>
       <input class="half-margin-left" id="name" v-model="username" placeholder="Enter a username..." :disabled="players.length > 2">
@@ -8,6 +8,9 @@
         <button type="submit" :disabled="players.length > 2">Join!</button>
       </div>
     </form>
+    <div v-if="players.length > 2">
+      <h3>All Player Slots are Taken!</h3>
+    </div>
   </div>
 </template>
 

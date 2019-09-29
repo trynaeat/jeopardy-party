@@ -26,6 +26,7 @@ const store: StoreOptions<RootState> = {
     activeQuestion: undefined,
     activePlayer: undefined,
     buzzerTimer: undefined,
+    judge: undefined,
   },
   mutations: {
     pushToast(state, toast: Toast) {
@@ -61,6 +62,9 @@ const store: StoreOptions<RootState> = {
     setBuzzerTimer(state, timer: ITimer) {
       state.buzzerTimer = timer;
     },
+    setJudge(state, judge: User) {
+      state.judge = judge;
+    },
     SOCKET_role(state, role: Role) {
       state.role = role;
     },
@@ -79,6 +83,7 @@ const store: StoreOptions<RootState> = {
       this.commit('setCurrentState', gameState.state);
       this.commit('setPlayers', gameState.players);
       this.commit('setActivePlayer', gameState.activePlayer);
+      this.commit('setJudge', gameState.judge);
       this.commit('setActiveQuestion', gameState.activeQuestion);
       if (buzzerTimer) {
         buzzerTimer.stopTimer();

@@ -2,9 +2,13 @@
     <div>
         <div class="overlay"></div>
         <div class="inner-content">
-            <h2>Awaiting Players...</h2>
+            <h2 v-if="players.length < 3">Awaiting Players...</h2>
+            <h2 v-if="players.length > 2">Awaiting Host...</h2>
             <div class="panel" v-if="role === 'spectator'">
                 <PlayerJoin></PlayerJoin>
+            </div>
+            <div class="panel base-margin-top" v-if="role === 'spectator'">
+                <JudgeJoin></JudgeJoin>
             </div>
             <div class="panel" v-if="role === 'host'">
                 <button @click="startGame()" :disabled="players.length < 2">Start Game</button>
@@ -17,11 +21,13 @@
 import Vue from 'vue';
 import { mapState } from 'vuex';
 import PlayerJoin from './PlayerJoin.vue';
+import JudgeJoin from './JudgeJoin.vue';
 
 export default Vue.extend({
   name: 'AwaitingPlayers',
   components: {
       PlayerJoin,
+      JudgeJoin,
   },
   computed: {
       ...mapState({

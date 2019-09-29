@@ -109,7 +109,6 @@ export class Game {
     public setJudge(judge: User) {
         this.judge = judge;
         this.listenToJudge(judge);
-        judge.socket.emit('role', Role.JUDGE);
         judge.socket.on('disconnect', () => {
             this.judge = null;
             this.syncAll();
