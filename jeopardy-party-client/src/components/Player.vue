@@ -5,7 +5,9 @@
     <h3 v-if="currentState === 'playerAnswer'">Currently Answering: {{ activePlayer.username }}</h3>
     <h3 v-if="currentState === 'judgingAnswer'">Waiting on Judge...</h3>
     <CountDown></CountDown>
-    <Timer></Timer>
+    <div class="timer">
+      <Timer></Timer>
+    </div>
   </div>
 </template>
 
@@ -33,3 +35,9 @@ export default Vue.extend({
   }
 });
 </script>
+<style scoped lang="scss">
+.timer {
+  position: absolute;
+  bottom: 0;
+}
+</style>

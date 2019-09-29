@@ -8,7 +8,7 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    id="svg8"
    version="1.1"
-   viewBox="0 0 200 50"
+   viewBox="0 0 200 80"
    width="100%">
   <defs
      id="defs2">
@@ -72,7 +72,7 @@
     <rect
        y="249.92715"
        x="1.6860669"
-       height="46.142738"
+       height="75"
        width="195.82133"
        id="rect12"
        :class="{ active: active, inactive: !active }"

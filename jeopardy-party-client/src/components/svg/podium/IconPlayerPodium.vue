@@ -44,84 +44,16 @@
   </metadata>
   <g
      id="layer1">
-    <rect
-       y="14.329304"
-       x="1.1894256"
-       height="280.72531"
-       width="209.28783"
-       id="rect10"
-       style="fill:#071484;fill-opacity:1;stroke:#000000;stroke-width:4.64670658;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
-    <rect
-       y="1.2545795"
-       x="0.43507814"
-       height="11.118606"
-       width="28.565788"
-       id="rect4550"
-       style="fill:#5c0000;fill-opacity:1;stroke:#6c5d53;stroke-width:2.71341753;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
-    <use
-       height="100%"
-       width="100%"
-       id="use4572"
-       transform="translate(22.532762)"
-       xlink:href="#rect4550"
-       y="0"
-       x="0" />
-    <use
-       height="100%"
-       width="100%"
-       id="use4574"
-       transform="translate(45.065525)"
-       xlink:href="#rect4550"
-       y="0"
-       x="0" />
-    <use
-       height="100%"
-       width="100%"
-       id="use4576"
-       transform="translate(67.598288)"
-       xlink:href="#rect4550"
-       y="0"
-       x="0" />
-    <use
-       height="100%"
-       width="100%"
-       id="use4578"
-       transform="translate(90.131051)"
-       xlink:href="#rect4550"
-       y="0"
-       x="0" />
-    <use
-       height="100%"
-       width="100%"
-       id="use4580"
-       transform="translate(112.66381)"
-       xlink:href="#rect4550"
-       y="0"
-       x="0" />
-    <use
-       height="100%"
-       width="100%"
-       id="use4582"
-       transform="translate(135.19658)"
-       xlink:href="#rect4550"
-       y="0"
-       x="0" />
-    <use
-       height="100%"
-       width="100%"
-       id="use4584"
-       transform="translate(157.72934)"
-       xlink:href="#rect4550"
-       y="0"
-       x="0" />
-    <use
-       height="100%"
-       width="100%"
-       id="use4586"
-       transform="translate(180.2621)"
-       xlink:href="#rect4550"
-       y="0"
-       x="0" />
+     <foreignObject
+         y="0"
+         x="1.1894256"
+         width="100%"
+         height="100%"
+         >
+         <div xmlns="http://www.w3.org/1999/xhtml">
+            <Timer :playerName="player.username" :playerOnly="true"></Timer>
+         </div>
+     </foreignObject>
     <rect
        y="72.596466"
        x="11.328194"
@@ -141,9 +73,13 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import Timer from '../../Timer.vue';
 
 export default Vue.extend({
   name: 'IconPlayerPodium',
+  components: {
+     Timer,
+  },
   props: {
      height: String,
      width: String,

@@ -1,5 +1,5 @@
 <template>
-  <div class="flex timer">
+  <div class="flex">
     <div v-for="n in 9" :key="n">
         <TimerPiece :active="isActive(n)"></TimerPiece>
     </div>
@@ -14,17 +14,25 @@ import * as _ from 'lodash-es';
 
 export default Vue.extend({
   name: 'Player',
+  props: {
+      playerName: String,
+      playerOnly: Boolean, // Only show countdown for provided playerName
+  },
   components: {
       TimerPiece,
   },
   computed: {
     ...mapState({
           buzzerTimer: (state: any) => state.buzzerTimer,
+          activePlayer: (state: any) => state.activePlayer,
     }),
   },
   methods: {
       isActive(n: number) {
           if (!this.buzzerTimer) {
+              return false;
+          }
+          if (this.playerOnly && (!this.activePlayer || this.activePlayer.username !== this.playerName)) {
               return false;
           }
           // 9 lamps counting down 5 seconds - so a pair goes down every second, with the middle 1 as the last second
@@ -37,8 +45,4 @@ export default Vue.extend({
 </script>
 
 <style scoped lang="scss">
-.timer {
-    position: absolute;
-    bottom: 0;
-}
 </style>
