@@ -7,3 +7,4 @@ export { Game } from './game';
 export { Round } from './round';
 export { Timer, SanitizedTimer } from './timer';
 export { GameBoard, SanitizedGameBoard } from './game-board';
+export { JudgeAction } from './judge-action';

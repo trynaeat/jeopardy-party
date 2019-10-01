@@ -11,6 +11,7 @@ export class Question {
     public year: number;
     public airDate: Date;
     public disabled?: boolean;
+    public answered = false;
 }
 
 /**
@@ -24,6 +25,7 @@ export class SanitizedQuestion {
     public showNumber: number;
     public year: number;
     public disabled?: boolean;
+    public answered: boolean;
 
     constructor(question: Question) {
         this.category = question.category;
@@ -33,5 +35,6 @@ export class SanitizedQuestion {
         this.showNumber = question.showNumber;
         this.year = question.year;
         this.disabled = question.disabled;
+        this.answered = question.answered;
     }
 }

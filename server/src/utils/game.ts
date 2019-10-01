@@ -91,6 +91,7 @@ function buildCategory(round: Round, category: Question[]) {
                     year: null,
                     airDate: null,
                     disabled: true,
+                    answered: false,
                 }; //Create a null question, it will be disabled on the final game board
             }
         }

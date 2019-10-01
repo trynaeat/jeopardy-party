@@ -4,12 +4,15 @@ import { Round } from './round';
 import { User } from './user';
 import { HostAction } from './host-action';
 import { PlayerAction } from './player-action';
+import { JudgeAction } from './judge-action';
 import { GameUpdate } from './game-update';
 import { Role } from './role';
 import { Timer } from './timer';
 import * as _ from 'lodash';
 import { socketServer } from './socket-server';
 import { Question } from './question';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 export class Game {
     private _roomId: string;
@@ -20,9 +23,12 @@ export class Game {
     public host: User;
     public judge: User;
     public players: User[] = [];
+    public buzzedPlayers: User[] = [];
     public buzzerTimer: Timer;
     public gameTimer: Timer;
+    public wasCorrect: boolean;
     private spectators: User[] = [];
+    private resetBuzzer$ = new Subject();
     public fsm = new StateMachine({
         init: 'awaitPlayers',
         transitions: [
@@ -33,8 +39,31 @@ export class Game {
             { name: 'questionFail', from: 'judgingAnswer', to: 'readQuestion' },
             { name: 'showAnswer', from: 'judgingAnswer', to: 'showingAnswer' },
             { name: 'returnToBoard', from: 'showingAnswer', to: 'questionBoard' },
-            { name: 'advanceRound', from: 'showAnswer', to: 'roundAdvance' },
+            { name: 'advanceRound', from: 'showingAnswer', to: 'roundAdvance' },
         ],
+        methods: {
+            onSelectQuestion: () => {
+                this.buzzedPlayers = [];
+            },
+            onShowAnswer: () => {
+                this.gameTimer = new Timer(3000, 100);
+                const sub = this.gameTimer.timer$.subscribe((timeRemaining: number) => {
+                    // Time's up! Go to judging answer.
+                    if (timeRemaining < 1) {
+                        sub.unsubscribe();
+                        this.gameTimer = null;
+                        this.fsm.returnToBoard();
+                        this.syncAll();
+                    }
+                });
+                this.gameTimer.startTimer();
+            },
+            onReturnToBoard: () => {
+                this.wasCorrect = null;
+                this.activePlayer = null;
+                this.activeQuestion = null;
+            },
+        },
     });
 
     constructor (roomId: string, board: GameBoard) {
@@ -69,16 +98,20 @@ export class Game {
         user.socket.on('playerAction', (action: PlayerAction, options: any) => {
             switch(action) {
                 case PlayerAction.BUZZ_IN:
-                    if (this.fsm.can('buzzIn')) {
+                    if (this.fsm.can('buzzIn') && !this.buzzedPlayers.find(u => u === user)) {
                         this.fsm.buzzIn();
                         this.activePlayer = user;
+                        this.buzzedPlayers.push(user);
                         this.buzzerTimer && this.buzzerTimer.resetTimer();
                         this.buzzerTimer = new Timer(5000, 100);
-                        const sub = this.buzzerTimer.timer$.subscribe(timeRemaining => {
+                        this.buzzerTimer.timer$.pipe(
+                            takeUntil(this.resetBuzzer$),
+                        )
+                        .subscribe(timeRemaining => {
                             // Time's up! Go to judging answer.
                             if (timeRemaining < 1) {
                                 this.fsm.judgeAnswer();
-                                sub.unsubscribe();
+                                this.resetBuzzer$.next();
                                 this.buzzerTimer = null;
                                 this.syncAll();
                             }
@@ -124,21 +157,57 @@ export class Game {
     }
 
     private listenToJudge(user: User) {
-
+        user.socket.on(JudgeAction.ANSWER_RULING, (username: string, value: number, correct: boolean) => {
+            if (this.fsm.is('playerAnswer')) {
+                this.fsm.judgeAnswer();
+            }
+            if (this.fsm.is('judgingAnswer')) {
+                const user = this.players.find(u => u.username === username);
+                if (!user) return;
+                this.wasCorrect = correct;
+                if (this.buzzerTimer) {
+                    this.buzzerTimer.resetTimer();
+                    this.resetBuzzer$.next();
+                    this.buzzerTimer = null;
+                }
+                if (correct) {
+                    user.winnings += value;
+                    this.fsm.showAnswer();
+                    socketServer().to(`room_${this._roomId}`).emit('question_answer', this.activeQuestion.answer);
+                    this.syncAll();
+                } else {
+                    user.winnings -= value;
+                    if (this.buzzedPlayers.length === this.players.length) {
+                        this.fsm.showAnswer();
+                        socketServer().to(`room_${this._roomId}`).emit('question_answer', this.activeQuestion.answer);
+                        this.syncAll();
+                    } else {
+                        this.fsm.questionFail();
+                        this.syncAll();
+                    }
+                }
+            }
+        });
     }
 
     private listenToHost(user: User) {
         user.socket.on(HostAction.START_GAME, () => {
             if (this.players.length >= 2 && this.fsm.can('startGame')) {
-                this.activePlayer = this.players[0];
                 this.fsm.startGame();
                 this.syncAll();
             }
         });
         user.socket.on(HostAction.SELECT_QUESTION, (category: string, qNum: number) => {
             if (this.fsm.can('selectQuestion')) {
-                this.activeQuestion = this.selectQuestion(category, qNum);
+                const selected = this.selectQuestion(category, qNum);
+                if (selected.disabled || selected.answered) {
+                    return;
+                }
+                this.activeQuestion = selected
+                this.activeQuestion.answered = true; // Clear question off board
                 this.fsm.selectQuestion();
+                // Send the judge (and only the judge) the answer
+                this.judge.socket.emit('question_answer', this.activeQuestion.answer);
                 this.syncAll();
             }
         });

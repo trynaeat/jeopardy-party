@@ -19,4 +19,5 @@ export interface RootState {
     activePlayer?: User;
     buzzerTimer?: ITimer;
     judge?: User;
+    answer?: string;
 }

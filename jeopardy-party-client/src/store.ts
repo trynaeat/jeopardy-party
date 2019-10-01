@@ -27,6 +27,7 @@ const store: StoreOptions<RootState> = {
     activePlayer: undefined,
     buzzerTimer: undefined,
     judge: undefined,
+    answer: undefined,
   },
   mutations: {
     pushToast(state, toast: Toast) {
@@ -65,6 +66,9 @@ const store: StoreOptions<RootState> = {
     setJudge(state, judge: User) {
       state.judge = judge;
     },
+    setAnswer(state, answer: string) {
+      state.answer = answer;
+    },
     SOCKET_role(state, role: Role) {
       state.role = role;
     },
@@ -76,6 +80,9 @@ const store: StoreOptions<RootState> = {
         message,
         title: 'Error from Game Room',
       });
+    },
+    SOCKET_question_answer(state, answer: string) {
+      this.commit('setAnswer', answer);
     },
     SOCKET_sync(state, gameState: GameState) {
       console.log('game sync!');

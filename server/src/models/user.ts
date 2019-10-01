@@ -4,6 +4,7 @@ export class User {
   private _id: string; // Unique ID for user, taken from Socket id
   private _username?: string; // User's screen name
   private _socket: Socket; // Socket.io socket associated with user
+  private _winnings = 0; // If they're a player, their money total
 
   constructor(id: string, socket: Socket, username?: string,) {
     this._id = id;
@@ -26,12 +27,22 @@ export class User {
   get socket(): Socket {
     return this._socket;
   }
+
+  get winnings(): number {
+    return this._winnings;
+  }
+
+  set winnings(total: number) {
+    this._winnings = total;
+  }
 }
 
 export class SanitizedUser {
   public username?: string;
+  public winnings?: number;
 
   constructor (user: User) {
     this.username = user.username;
+    this.winnings = user.winnings;
   }
 }

@@ -3,9 +3,13 @@
       <h2 v-if="currentState === 'judgingAnswer'">Judging Answer...</h2>
       <h2 v-if="currentState === 'playerAnswer'">Currently Answering: {{ activePlayer.username }}</h2>
       <div class="flex-fluid">
-          <div class="flex-fluid inner">
-            <p v-html="activeQuestion.question"></p>
-        </div>
+            <div class="flex-fluid inner">
+                <p v-html="activeQuestion.question"></p>
+                <div class="base-margin-top" v-if="role === 'judge'">
+                    <div><p>Answer: {{ answer }}</p></div>
+                    <div v-if="activePlayer"><button @click="judgeAnswer(true)">Correct</button><button class="base-margin-left" @click="judgeAnswer(false)">Incorrect</button></div>
+                </div>
+            </div>
       </div>
       <Players v-if="role === 'host'"></Players>
   </div>
@@ -24,10 +28,16 @@ export default Vue.extend({
   computed: {
       ...mapState({
           activeQuestion: (state: any) => state.activeQuestion,
+          answer: (state: any) => state.answer,
           activePlayer: (state: any) => state.activePlayer,
           currentState: (state: any) => state.currentState,
           role: (state: any) => state.role,
       }),
+  },
+  methods: {
+      judgeAnswer(correct: boolean) {
+          this.$socket.emit('answerRuling', this.activePlayer.username, this.activeQuestion.value, correct);
+      },
   },
 });
 </script>

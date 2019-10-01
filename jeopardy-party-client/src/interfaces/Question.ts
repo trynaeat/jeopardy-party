@@ -7,4 +7,5 @@ export interface Question {
     round: Round;
     showNumber: number;
     year: number;
+    answer?: string;
 }
