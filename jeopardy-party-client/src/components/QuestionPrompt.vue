@@ -1,13 +1,20 @@
 <template>
-  <div class="main">
+  <div class="flex flex-column flex-fluid">
       <h2 v-if="currentState === 'judgingAnswer'">Judging Answer...</h2>
       <h2 v-if="currentState === 'playerAnswer'">Currently Answering: {{ activePlayer.username }}</h2>
-      <div class="flex-fluid">
-            <div class="flex-fluid inner">
+      <div class="flex flex-fluid" style="align-items: center;">
+            <div>
                 <p v-html="activeQuestion.question"></p>
                 <div class="base-margin-top" v-if="role === 'judge'">
-                    <div><p>Answer: {{ answer }}</p></div>
-                    <div v-if="activePlayer"><button @click="judgeAnswer(true)">Correct</button><button class="base-margin-left" @click="judgeAnswer(false)">Incorrect</button></div>
+                    <div><p class="answer">Answer: {{ answer }}</p></div>
+                    <div v-if="activePlayer">
+                        <button @click="judgeAnswer(true)">Correct</button>
+                        <button class="base-margin-left" @click="judgeAnswer(false)">Incorrect</button>
+                    </div>
+                    <div v-else>
+                        <button v-if="currentState === 'readQuestion'" @click="armBuzzers()">Arm Buzzers</button>
+                        <button v-if="currentState === 'buzzersArmed'" @click="skipQuestion()" class="base-margin-left" >Back to Board</button>
+                    </div>
                 </div>
             </div>
       </div>
@@ -38,6 +45,12 @@ export default Vue.extend({
       judgeAnswer(correct: boolean) {
           this.$socket.emit('answerRuling', this.activePlayer.username, this.activeQuestion.value, correct);
       },
+      armBuzzers() {
+          this.$socket.emit('armBuzzer');
+      },
+      skipQuestion() {
+          this.$socket.emit('skipQuestion');
+      },
   },
 });
 </script>
@@ -50,16 +63,7 @@ p {
     align-self: center;
     top: 50%;
 }
-div.main {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-}
-div.flex-fluid {
-    display: flex;
-    align-items: center;
-}
-.inner {
-    flex-direction: column;
+p.answer {
+    color: $yellow;
 }
 </style>

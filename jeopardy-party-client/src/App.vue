@@ -1,5 +1,5 @@
 <template>
-  <div class="app-main" id="app">
+  <div id="app">
     <Toast></Toast>
     <div id="nav">
       <router-link to="/">Home</router-link> |
@@ -22,8 +22,8 @@ body {
   padding: 10px;
   text-align: center;
 }
-.app-main {
-  height: 100vh;
+#nav {
+  height: 3vh;
 }
 </style>
 

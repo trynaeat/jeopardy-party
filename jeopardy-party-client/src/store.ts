@@ -25,6 +25,7 @@ const store: StoreOptions<RootState> = {
     players: [],
     activeQuestion: undefined,
     activePlayer: undefined,
+    playersTurn: undefined,
     buzzerTimer: undefined,
     judge: undefined,
     answer: undefined,
@@ -56,6 +57,9 @@ const store: StoreOptions<RootState> = {
     },
     setActivePlayer(state, player: User) {
       state.activePlayer = player;
+    },
+    setPlayersTurn(state, player: User) {
+      state.playersTurn = player;
     },
     setActiveQuestion(state, question: Question) {
       state.activeQuestion = question;
@@ -90,6 +94,7 @@ const store: StoreOptions<RootState> = {
       this.commit('setCurrentState', gameState.state);
       this.commit('setPlayers', gameState.players);
       this.commit('setActivePlayer', gameState.activePlayer);
+      this.commit('setPlayersTurn', gameState.playersTurn);
       this.commit('setJudge', gameState.judge);
       this.commit('setActiveQuestion', gameState.activeQuestion);
       if (buzzerTimer) {

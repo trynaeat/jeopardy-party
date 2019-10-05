@@ -18,6 +18,7 @@ export class Game {
     private _roomId: string;
     public activeQuestion: Question;
     public activePlayer: User;
+    public playersTurn: User;
     public board: GameBoard;
     public round = Round.JEOPARDY;
     public host: User;
@@ -34,7 +35,9 @@ export class Game {
         transitions: [
             { name: 'startGame', from: 'awaitPlayers', to: 'questionBoard' },
             { name: 'selectQuestion', from: 'questionBoard', to: 'readQuestion' },
-            { name: 'buzzIn', from: 'readQuestion', to: 'playerAnswer' },
+            { name: 'armBuzzers', from: 'readQuestion', to: 'buzzersArmed' },
+            { name: 'buzzIn', from: 'buzzersArmed', to: 'playerAnswer' },
+            { name: 'skipQuestion', from: 'buzzersArmed', to: 'questionBoard' },
             { name: 'judgeAnswer', from: 'playerAnswer', to: 'judgingAnswer' },
             { name: 'questionFail', from: 'judgingAnswer', to: 'readQuestion' },
             { name: 'showAnswer', from: 'judgingAnswer', to: 'showingAnswer' },
@@ -42,6 +45,9 @@ export class Game {
             { name: 'advanceRound', from: 'showingAnswer', to: 'roundAdvance' },
         ],
         methods: {
+            onStartGame: () => {
+                this.playersTurn = this.players[0];
+            },
             onSelectQuestion: () => {
                 this.buzzedPlayers = [];
             },
@@ -58,7 +64,21 @@ export class Game {
                 });
                 this.gameTimer.startTimer();
             },
+            onSkipQuestion: () => {
+                const lastPlayerIdx = _.indexOf(this.players, this.activePlayer);
+                this.playersTurn = this.players[(lastPlayerIdx + 1) % this.players.length];
+                this.activePlayer = null;
+                this.activeQuestion = null;
+                this.wasCorrect = null;
+            },
             onReturnToBoard: () => {
+                if (this.wasCorrect) {
+                    this.playersTurn = this.activePlayer; // if the last person to answer got it right, they get to pick next Q
+                } else {
+                    // Else get next player in line
+                    const lastPlayerIdx = _.indexOf(this.players, this.activePlayer);
+                    this.playersTurn = this.players[(lastPlayerIdx + 1) % this.players.length];
+                }
                 this.wasCorrect = null;
                 this.activePlayer = null;
                 this.activeQuestion = null;
@@ -186,6 +206,18 @@ export class Game {
                         this.syncAll();
                     }
                 }
+            }
+        });
+        user.socket.on(JudgeAction.ARM_BUZZER, () => {
+            if (this.fsm.can('armBuzzers')) {
+                this.fsm.armBuzzers();
+                this.syncAll();
+            }
+        });
+        user.socket.on(JudgeAction.SKIP_QUESTION, () => {
+            if (this.fsm.can('skipQuestion')) {
+                this.fsm.skipQuestion();
+                this.syncAll();
             }
         });
     }

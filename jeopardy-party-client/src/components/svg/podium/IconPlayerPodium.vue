@@ -5,6 +5,7 @@
     viewBox="0 0 210 297"
     role="presentation"
     preserveAspectRatio="none"
+    v-bind:class="{ 'active-player': active }"
   >
 <defs
      id="defs2">
@@ -89,6 +90,7 @@ export default Vue.extend({
           return { };
        }, 
      },
+     active: Boolean,
   },
 })
 </script>
@@ -111,5 +113,8 @@ export default Vue.extend({
    height: 100%;
    flex-direction:column;
    justify-content:center;
+}
+.active-player {
+  box-shadow: 0 0 30px 15px yellow;
 }
 </style>

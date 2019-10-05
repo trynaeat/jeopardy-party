@@ -1,8 +1,10 @@
 <template>
-  <div>
-    <h1>Judging</h1>
-    <QuestionPrompt v-if="currentState === 'readQuestion' || currentState === 'playerAnswer' || currentState === 'judgingAnswer'"></QuestionPrompt>
-    <div class="timer">
+  <div class="flex flex flex-column flex-fluid">
+    <div class="flex flex-column flex-fluid">
+      <h1>Judging</h1>
+      <QuestionPrompt v-if="currentState === 'readQuestion' || currentState === 'playerAnswer' || currentState === 'judgingAnswer' || currentState === 'buzzersArmed'"></QuestionPrompt>
+    </div>
+    <div>
       <Timer></Timer>
     </div>
   </div>
@@ -28,9 +30,3 @@ export default Vue.extend({
   },
 });
 </script>
-<style scoped lang="scss">
-.timer {
-  position: absolute;
-  bottom: 0;
-}
-</style>

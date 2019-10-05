@@ -1,9 +1,15 @@
 <template>
-  <div>
-    <Host v-if="role === 'host'"></Host>
-    <Spectator v-if="role === 'spectator'"></Spectator>
-    <Player v-if="role === 'player'"></Player>
-    <Judge v-if="role === 'judge'"></Judge>
+  <div class="flex">
+    <div class="side-lights"></div>
+    <div class="flex-fluid">
+      <div class="flex main">
+        <Host v-if="role === 'host'"></Host>
+        <Spectator v-if="role === 'spectator'"></Spectator>
+        <Player v-if="role === 'player'"></Player>
+        <Judge v-if="role === 'judge'"></Judge>
+      </div>
+    </div>
+    <div class="side-lights"></div>
   </div>
 </template>
 
@@ -41,3 +47,12 @@ export default Vue.extend({
   },
 });
 </script>
+<style lang="scss">
+.side-lights {
+  width: 5vw;
+  height: 95vh;
+}
+.main {
+  height: 95vh;
+}
+</style>

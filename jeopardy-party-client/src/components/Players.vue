@@ -1,11 +1,11 @@
 <template>
   <div class="main-content">
     <IconPodium :height="'190px'" :width="'150px'"></IconPodium>
-    <IconPlayerPodium :height="'200px'" :width="'150px'" :player="players[0]"></IconPlayerPodium>
+    <IconPlayerPodium :height="'200px'" :width="'150px'" :player="players[0]" :active="players[0] && playersTurn.username === players[0].username"></IconPlayerPodium>
     <IconPodium :height="'190px'" :width="'150px'"></IconPodium>
-    <IconPlayerPodium :height="'200px'" :width="'150px'" :player="players[1]"></IconPlayerPodium>
+    <IconPlayerPodium :height="'200px'" :width="'150px'" :player="players[1]" :active="players[1] && playersTurn.username === players[1].username"></IconPlayerPodium>
     <IconPodium :height="'190px'" :width="'150px'"></IconPodium>
-    <IconPlayerPodium :height="'200px'" :width="'150px'" :player="players[2]"></IconPlayerPodium>
+    <IconPlayerPodium :height="'200px'" :width="'150px'" :player="players[2]" :active="players[2] && playersTurn.username === players[2].username"></IconPlayerPodium>
     <IconPodium :height="'190px'" :width="'150px'"></IconPodium>
   </div>
 </template>
@@ -28,11 +28,11 @@ export default Vue.extend({
   computed: {
     ...mapState({
           players: (state: any) => state.players,
+          playersTurn: (state: any) => state.playersTurn || { },
     }),
   }
 });
 </script>
 
 <style scoped lang="scss">
-
 </style>

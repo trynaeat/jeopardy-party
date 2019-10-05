@@ -17,6 +17,7 @@ export interface GameState {
     board: GameBoard;
     state: GameStep;
     activePlayer?: User;
+    playersTurn?: User;
     activeQuestion?: Question;
     buzzerTimer?: ITimer;
 }

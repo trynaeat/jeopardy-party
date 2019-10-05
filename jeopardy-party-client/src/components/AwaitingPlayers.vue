@@ -3,7 +3,8 @@
         <div class="overlay"></div>
         <div class="inner-content">
             <h2 v-if="players.length < 3">Awaiting Players...</h2>
-            <h2 v-if="players.length > 2">Awaiting Host...</h2>
+            <h2 v-else-if="!judge">Awaiting Judge...</h2>
+            <h2 v-else>Awaiting Host...</h2>
             <div class="panel" v-if="role === 'spectator'">
                 <PlayerJoin></PlayerJoin>
             </div>
@@ -11,7 +12,7 @@
                 <JudgeJoin></JudgeJoin>
             </div>
             <div class="panel" v-if="role === 'host'">
-                <button @click="startGame()" :disabled="players.length < 2">Start Game</button>
+                <button @click="startGame()" :disabled="players.length < 2 || !judge">Start Game</button>
             </div>
         </div>
     </div>
@@ -33,6 +34,7 @@ export default Vue.extend({
       ...mapState({
           role: (state: any) => state.role,
           players: (state: any) => state.players,
+          judge: (state: any) => state.judge,
       }),
   },
   methods: {
@@ -54,6 +56,7 @@ export default Vue.extend({
     background-color: black;
     text-align: center;
     top: 0;
+    left: 0;
 }
 .inner-content {
     display: flex;

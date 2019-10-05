@@ -14,6 +14,7 @@ import { SanitizedTimer } from './timer';
 export class GameUpdate {
     public activeQuestion?: SanitizedQuestion;
     public activePlayer?: SanitizedUser;
+    public playersTurn?: SanitizedUser;
     public host: SanitizedUser;
     public judge: SanitizedUser;
     public players: SanitizedUser[];
@@ -29,6 +30,7 @@ export class GameUpdate {
         this.players = game.players.map(user => new SanitizedUser(user));
         this.activeQuestion = game.activeQuestion ? new SanitizedQuestion(game.activeQuestion) : null;
         this.activePlayer = game.activePlayer ? new SanitizedUser(game.activePlayer) : null;
+        this.playersTurn = game.playersTurn ? new SanitizedUser(game.playersTurn) : null;
         this.buzzerTimer = game.buzzerTimer ? new SanitizedTimer(game.buzzerTimer) : null;
         this.gameTimer = game.gameTimer ? new SanitizedTimer(game.gameTimer) : null;
         this.board = _.mapValues(game.board, round => {
