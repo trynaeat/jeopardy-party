@@ -10,6 +10,7 @@
       </div>
       <h3 v-if="currentState === 'playerAnswer'">Currently Answering: {{ activePlayer.username }}</h3>
       <h3 v-if="currentState === 'judgingAnswer'">Waiting on Judge...</h3>
+      <Answer v-if="currentState === 'showingAnswer'"></Answer>
     </div>
     <div>
       <Timer></Timer>
@@ -19,6 +20,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import Answer from './Answer.vue';
 import PlayerBuzzer from './PlayerBuzzer.vue';
 import Timer from './Timer.vue';
 import { mapState } from 'vuex';
@@ -27,6 +29,7 @@ import * as _ from 'lodash-es';
 export default Vue.extend({
   name: 'Player',
   components: {
+    Answer,
     PlayerBuzzer,
     Timer,
   },

@@ -3,6 +3,7 @@
     <div class="flex flex-column flex-fluid">
       <h1>Judging</h1>
       <QuestionPrompt v-if="currentState === 'readQuestion' || currentState === 'playerAnswer' || currentState === 'judgingAnswer' || currentState === 'buzzersArmed'"></QuestionPrompt>
+      <Answer v-if="currentState === 'showingAnswer'"></Answer>
     </div>
     <div>
       <Timer></Timer>
@@ -12,6 +13,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import Answer from './Answer.vue';
 import Timer from './Timer.vue';
 import QuestionPrompt from './QuestionPrompt.vue';
 import { mapState } from 'vuex';
@@ -20,6 +22,7 @@ import * as _ from 'lodash-es';
 export default Vue.extend({
   name: 'Judge',
   components: {
+    Answer,
     QuestionPrompt,
     Timer,
   },

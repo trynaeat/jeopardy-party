@@ -39,7 +39,7 @@ export class Game {
             { name: 'buzzIn', from: 'buzzersArmed', to: 'playerAnswer' },
             { name: 'skipQuestion', from: 'buzzersArmed', to: 'questionBoard' },
             { name: 'judgeAnswer', from: 'playerAnswer', to: 'judgingAnswer' },
-            { name: 'questionFail', from: 'judgingAnswer', to: 'readQuestion' },
+            { name: 'questionFail', from: 'judgingAnswer', to: 'buzzersArmed' },
             { name: 'showAnswer', from: 'judgingAnswer', to: 'showingAnswer' },
             { name: 'returnToBoard', from: 'showingAnswer', to: 'questionBoard' },
             { name: 'advanceRound', from: 'showingAnswer', to: 'roundAdvance' },
