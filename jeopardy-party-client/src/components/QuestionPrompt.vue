@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-column flex-fluid">
+  <div class="flex flex-column flex-fluid" style="align-items: center;">
       <h2 v-if="currentState === 'judgingAnswer'">Judging Answer...</h2>
       <h2 v-if="currentState === 'playerAnswer'">Currently Answering: {{ activePlayer.username }}</h2>
       <div class="flex flex-fluid" style="align-items: center;">

@@ -1,6 +1,8 @@
 <template>
   <div class="flex">
-    <div class="side-lights"></div>
+    <div class="side-lights">
+      <BoardLights :lit="armed"></BoardLights>
+    </div>
     <div class="flex-fluid">
       <div class="flex main">
         <Host v-if="role === 'host'"></Host>
@@ -9,7 +11,9 @@
         <Judge v-if="role === 'judge'"></Judge>
       </div>
     </div>
-    <div class="side-lights"></div>
+    <div class="side-lights">
+      <BoardLights :lit="armed"></BoardLights>
+    </div>
   </div>
 </template>
 
@@ -21,6 +25,7 @@ import Spectator from '@/components/Spectator.vue';
 import Player from '@/components/Player.vue';
 import Judge from '@/components/Judge.vue';
 import Players from '@/components/Players.vue';
+import BoardLights from '@/components/svg/boardLights/boardLights.vue';
 
 export default Vue.extend({
   name: 'PlayGame',
@@ -30,6 +35,7 @@ export default Vue.extend({
     Player,
     Judge,
     Players,
+    BoardLights,
   },
   mounted: function() {
     console.log('joining...');
@@ -43,6 +49,7 @@ export default Vue.extend({
   computed: {
     ...mapState({
         role: (state: any) => state.role,
+        armed: (state: any) => state.currentState === 'buzzersArmed',
     }),
   },
 });

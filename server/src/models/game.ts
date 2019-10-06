@@ -190,6 +190,7 @@ export class Game {
                     this.resetBuzzer$.next();
                     this.buzzerTimer = null;
                 }
+                this.activePlayer = null;
                 if (correct) {
                     user.winnings += value;
                     this.fsm.showAnswer();

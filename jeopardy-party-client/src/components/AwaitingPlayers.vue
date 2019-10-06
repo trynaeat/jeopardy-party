@@ -64,6 +64,7 @@ export default Vue.extend({
     flex-direction: column;
     opacity: 1.0;
     position: absolute;
+    left: 0;
     top: 10vh;
     z-index: 12;
     width: 100vw;
