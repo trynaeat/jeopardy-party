@@ -1,6 +1,9 @@
 <template>
   <div class="flex flex-column flex-fluid">
     <div class="flex-fluid">
+      <div class="menu">
+        <button type="button" class="btn btn-primary" data-toggle="modal" @click="showModal = true;">Edit Signature</button>
+      </div>
       <h1>Player Name: {{ username }}</h1>
       <PlayerBuzzer v-if="currentState === 'readQuestion' || currentState === 'buzzersArmed'"></PlayerBuzzer>
       <h3 v-if="currentState === 'awaitPlayers'">Waiting on more players...</h3>
@@ -15,13 +18,22 @@
     <div>
       <Timer></Timer>
     </div>
+    <Modal :show.sync="showModal">
+      <h5 slot="modal-header" class="modal-title">Sign your name</h5>
+      <div slot="modal-body" class="text-center">
+        <SignName></SignName>
+      </div>
+      <button slot="modal-footer" type="button" class="btn btn-primary">Save</button>
+    </Modal>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
+import Modal from './common/Modal.vue';
 import Answer from './Answer.vue';
 import PlayerBuzzer from './PlayerBuzzer.vue';
+import SignName from './SignName.vue';
 import Timer from './Timer.vue';
 import { mapState } from 'vuex';
 import * as _ from 'lodash-es';
@@ -30,7 +42,9 @@ export default Vue.extend({
   name: 'Player',
   components: {
     Answer,
+    Modal,
     PlayerBuzzer,
+    SignName,
     Timer,
   },
   computed: {
@@ -40,6 +54,20 @@ export default Vue.extend({
           activePlayer: (state: any) => state.activePlayer,
           playersTurn: (state: any) => state.playersTurn,
     }),
-  }
+  },
+  data() {
+    return {
+      showModal: false,
+    };
+  },
 });
 </script>
+
+<style scoped lang="scss">
+@import '../assets/variables.scss';
+.menu {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+}
+</style>
