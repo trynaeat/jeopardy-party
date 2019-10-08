@@ -43,7 +43,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Toast } from '../interfaces';
+import { Toast } from '../../interfaces';
 
 export default Vue.extend({
   name: 'Toast',

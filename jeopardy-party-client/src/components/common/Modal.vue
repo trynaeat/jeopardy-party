@@ -21,7 +21,7 @@
           <div class="modal-content">
             <div class="modal-header">
               <slot name="modal-header"></slot>
-              <button type="button" class="close" aria-label="Close" @click="onClose()">
+              <button v-if="closeButton" type="button" class="close" aria-label="Close" @click="onClose()">
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
@@ -45,6 +45,10 @@ export default Vue.extend({
   name: 'Modal',
   props: {
       show: Boolean,
+      closeButton: {
+        type: Boolean,
+        default: true,
+      },
   },
   methods: {
       onClose() {

@@ -19,7 +19,7 @@
       <Timer></Timer>
     </div>
     <Modal :show.sync="showModal">
-      <h5 slot="modal-header" class="modal-title">Sign your name</h5>
+      <h5 slot="modal-header" class="modal-title">Sign your name (optional)</h5>
       <div slot="modal-body" class="text-center">
         <SignName></SignName>
       </div>
@@ -59,6 +59,9 @@ export default Vue.extend({
     return {
       showModal: false,
     };
+  },
+  mounted() {
+    this.showModal = true; // Prompt for signature when user first navigates
   },
 });
 </script>

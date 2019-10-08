@@ -5,4 +5,5 @@ export interface Toast {
     message: string;
     title: string;
     image?: string;
+    timeout?: number; // Time to remain in ms
   }

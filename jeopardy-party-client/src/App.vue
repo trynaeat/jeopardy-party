@@ -29,7 +29,7 @@ body {
 
 <script lang="ts">
 import Vue from 'vue';
-import Toast from '@/components/Toast.vue';
+import Toast from '@/components/common/Toast.vue';
 
 export default Vue.extend({
   name: 'App',
@@ -43,6 +43,7 @@ export default Vue.extend({
         status: 'info',
         message: 'Connected to game server',
         title: 'Socket Connect',
+        timeout: 3000,
       });
     },
     disconnect: function() {
@@ -51,6 +52,7 @@ export default Vue.extend({
         status: 'error',
         message: 'Your connection to the game server was disrupted',
         title: 'Socket Disconnect',
+        timeout: 3000,
       });
     }
   },

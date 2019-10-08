@@ -141,6 +141,10 @@ export class Game {
                     }
             }
         });
+        user.socket.on('setSignature', (signature: string) => {
+            user.signature = signature;
+            this.syncAll();
+        });
     }
 
     public addSpectator(user: User) {

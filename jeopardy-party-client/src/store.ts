@@ -38,6 +38,12 @@ const store: StoreOptions<RootState> = {
       }
       toast.id = _.uniqueId('toast_');
       state.toasts.push(toast);
+      // If the toast has a timeout, schedule to remove it
+      if (toast.timeout) {
+        setTimeout(() => {
+          state.toasts = _.without(state.toasts, toast);
+        }, toast.timeout);
+      }
     },
     closeToast(state, toast: Toast) {
       const index = _.indexOf(state.toasts, toast);
