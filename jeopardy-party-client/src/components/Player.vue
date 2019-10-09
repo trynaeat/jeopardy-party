@@ -11,7 +11,7 @@
           <h3 v-if="playersTurn.username === username">Pick a question!</h3>
           <h3 v-else>Waiting on {{ playersTurn.username }} to pick a question</h3>
       </div>
-      <h3 v-if="currentState === 'playerAnswer'">Currently Answering: {{ activePlayer.username }}</h3>
+      <h3 v-if="currentState === 'playerAnswer'">Currently Answering: {{ activePlayer ? activePlayer.username : '' }}</h3>
       <h3 v-if="currentState === 'judgingAnswer'">Waiting on Judge...</h3>
       <Answer v-if="currentState === 'showingAnswer'"></Answer>
     </div>

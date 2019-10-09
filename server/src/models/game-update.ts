@@ -4,6 +4,7 @@ import { SanitizedGameBoard } from './game-board';
 import * as _ from 'lodash';
 import { SanitizedQuestion } from './question';
 import { SanitizedTimer } from './timer';
+import { Round } from './round';
 
 /**
  * All of the game state that gets sent as an update to users to sync them
@@ -22,6 +23,7 @@ export class GameUpdate {
     public state: string;
     public buzzerTimer: SanitizedTimer;
     public gameTimer: SanitizedTimer;
+    public round: Round;
 
     constructor(game: Game) {
         this.state = game.fsm.state;
@@ -39,6 +41,7 @@ export class GameUpdate {
                     return new SanitizedQuestion(q);
                 })
             })
-        })
+        });
+        this.round = game.round;
     }
 }

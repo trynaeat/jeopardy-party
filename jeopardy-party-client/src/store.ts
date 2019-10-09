@@ -79,6 +79,9 @@ const store: StoreOptions<RootState> = {
     setAnswer(state, answer: string) {
       state.answer = answer;
     },
+    setRound(state, round: Round) {
+      state.round = round;
+    },
     SOCKET_role(state, role: Role) {
       state.role = role;
     },
@@ -103,6 +106,7 @@ const store: StoreOptions<RootState> = {
       this.commit('setPlayersTurn', gameState.playersTurn);
       this.commit('setJudge', gameState.judge);
       this.commit('setActiveQuestion', gameState.activeQuestion);
+      this.commit('setRound', gameState.round);
       if (buzzerTimer) {
         buzzerTimer.stopTimer();
       }

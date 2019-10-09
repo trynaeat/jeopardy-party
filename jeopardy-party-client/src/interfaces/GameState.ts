@@ -2,6 +2,7 @@ import { GameBoard } from './GameBoard';
 import { User } from './User';
 import { Question } from './Question';
 import { ITimer } from './Timer';
+import { Round } from './Round';
 
 export enum GameStep {
     PRE_GAME = 'waitingForGame',
@@ -20,4 +21,5 @@ export interface GameState {
     playersTurn?: User;
     activeQuestion?: Question;
     buzzerTimer?: ITimer;
+    round: Round;
 }

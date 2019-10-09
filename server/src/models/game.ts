@@ -17,8 +17,8 @@ import { takeUntil } from 'rxjs/operators';
 export class Game {
     private _roomId: string;
     public activeQuestion: Question;
-    public activePlayer: User;
-    public playersTurn: User;
+    public activePlayer: User; // Player currently buzzed in
+    public playersTurn: User; // Player whose turn it is
     public board: GameBoard;
     public round = Round.JEOPARDY;
     public host: User;
@@ -37,12 +37,17 @@ export class Game {
             { name: 'selectQuestion', from: 'questionBoard', to: 'readQuestion' },
             { name: 'armBuzzers', from: 'readQuestion', to: 'buzzersArmed' },
             { name: 'buzzIn', from: 'buzzersArmed', to: 'playerAnswer' },
-            { name: 'skipQuestion', from: 'buzzersArmed', to: 'questionBoard' },
+            { name: 'skipQuestion', from: 'buzzersArmed', to: 'showingAnswer' },
             { name: 'judgeAnswer', from: 'playerAnswer', to: 'judgingAnswer' },
             { name: 'questionFail', from: 'judgingAnswer', to: 'buzzersArmed' },
             { name: 'showAnswer', from: 'judgingAnswer', to: 'showingAnswer' },
             { name: 'returnToBoard', from: 'showingAnswer', to: 'questionBoard' },
             { name: 'advanceRound', from: 'showingAnswer', to: 'roundAdvance' },
+            { name: 'advanceToBoard', from: 'roundAdvance', to: 'questionBoard' },
+            { name: 'advanceToFinal', from: 'roundAdvance', to: 'finalWager' },
+            { name: 'finishWager', from: 'finalWager', to: 'finalJeopardy' },
+            { name: 'showAnswers', from: 'finalJeopardy', to: 'showingFinalAnswer' },
+            { name: 'endGame', from: 'showingFinalAnswer', to: 'showingWinner' },
         ],
         methods: {
             onStartGame: () => {
@@ -51,25 +56,79 @@ export class Game {
             onSelectQuestion: () => {
                 this.buzzedPlayers = [];
             },
-            onShowAnswer: () => {
+            onAdvanceRound: () => {
+                this.wasCorrect = null;
+                this.activePlayer = null;
+                this.activeQuestion = null;
+                if (this.round === Round.JEOPARDY) {
+                    this.round = Round.DOUBLE_JEOPARDY;
+                    this.playersTurn = _.sortBy(this.players, 'winnings')[0]; // Player with lowest total starts next round
+                } else {
+                    this.round = Round.FINAL_JEOPARDY;
+                    this.playersTurn = null;
+                }
                 this.gameTimer = new Timer(3000, 100);
                 const sub = this.gameTimer.timer$.subscribe((timeRemaining: number) => {
-                    // Time's up! Go to judging answer.
                     if (timeRemaining < 1) {
                         sub.unsubscribe();
                         this.gameTimer = null;
-                        this.fsm.returnToBoard();
+                        if (this.round === Round.FINAL_JEOPARDY) {
+                            this.fsm.advanceToFinal();
+                        } else {
+                            this.fsm.advanceToBoard();
+                        }
+                        this.syncAll();
+                    }
+                });
+                this.gameTimer.startTimer();
+            },
+            onQuestionFail: () => {
+                this.activePlayer = null;
+            },
+            onShowAnswer: () => {
+                this.activeQuestion.answered = true;
+                this.gameTimer = new Timer(3000, 100);
+                const sub = this.gameTimer.timer$.subscribe((timeRemaining: number) => {
+                    // Time's up! Go back to the board or advance the round.
+                    if (timeRemaining < 1) {
+                        sub.unsubscribe();
+                        this.gameTimer = null;
+                        if (this.allAnswered(this.round)) {
+                            this.fsm.advanceRound();
+                            this.syncAll();
+                        } else if (this.round === Round.FINAL_JEOPARDY) {
+                            this.fsm.endGame();
+                        } else {
+                            this.fsm.returnToBoard();
+                        }
                         this.syncAll();
                     }
                 });
                 this.gameTimer.startTimer();
             },
             onSkipQuestion: () => {
+                this.activeQuestion.answered = true;
                 const lastPlayerIdx = _.indexOf(this.players, this.activePlayer);
                 this.playersTurn = this.players[(lastPlayerIdx + 1) % this.players.length];
-                this.activePlayer = null;
                 this.activeQuestion = null;
-                this.wasCorrect = null;
+                this.wasCorrect = false;
+                this.gameTimer = new Timer(3000, 100);
+                const sub = this.gameTimer.timer$.subscribe((timeRemaining: number) => {
+                    // Time's up! Go back to the board or advance the round.
+                    if (timeRemaining < 1) {
+                        sub.unsubscribe();
+                        this.gameTimer = null;
+                        // can't skip during final jeopardy, so no check here
+                        if (this.allAnswered(this.round)) {
+                            this.fsm.advanceRound();
+                            this.syncAll();
+                        } else {
+                            this.fsm.returnToBoard();
+                        }
+                        this.syncAll();
+                    }
+                });
+                this.gameTimer.startTimer();
             },
             onReturnToBoard: () => {
                 if (this.wasCorrect) {
@@ -194,7 +253,6 @@ export class Game {
                     this.resetBuzzer$.next();
                     this.buzzerTimer = null;
                 }
-                this.activePlayer = null;
                 if (correct) {
                     user.winnings += value;
                     this.fsm.showAnswer();
@@ -221,6 +279,7 @@ export class Game {
         });
         user.socket.on(JudgeAction.SKIP_QUESTION, () => {
             if (this.fsm.can('skipQuestion')) {
+                socketServer().to(`room_${this._roomId}`).emit('question_answer', this.activeQuestion.answer);
                 this.fsm.skipQuestion();
                 this.syncAll();
             }
@@ -267,5 +326,13 @@ export class Game {
         console.log(category);
         console.log(qNum);
         return this.board[this.round][category][qNum];
+    }
+
+    /**
+     * Check if every question in the round has been answered
+     * @param round 
+     */
+    private allAnswered (round: Round) {
+        return _.every(this.board[this.round], cat => _.every(cat, q => q.answered || q.disabled));
     }
 }
