@@ -1,18 +1,18 @@
 <template>
-<div>
-    <svg class="draw-area"
-        ref="svgArea"
+<div class="draw-area">
+    <button type="button" class="erase" aria-label="Close" @click="erase()">
+        <span aria-hidden="true">&times;</span>
+    </button>
+    <svg ref="svgArea"
+        height="100%"
+        width="100%"
+        viewbox="0 0 310 400"
         @mousedown="clickStart($event)"
         @mouseup="clickEnd($event)"
         @touchstart="touchStart($event)"
         @touchend="touchEnd($event)"
         @mousemove="onMove($event)"
         @touchmove="onTouch($event)">
-        <foreignObject x=20 y=20 width="25px" height="23px">
-            <button type="button" class="erase" aria-label="Close" @click="erase()">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </foreignObject>
         <path v-for="(path, index) in paths" :key="index" :d="path"></path>
     </svg>
 </div>
@@ -78,18 +78,27 @@ export default Vue.extend({
     },
     erase () {
         this.paths = [];
+    },
+    submit () {
+        if (this.paths.length > 0) {
+            const s = new XMLSerializer();
+            const serializedSvg = s.serializeToString(this.$refs.svgArea);
+            this.$socket.emit('setSignature', serializedSvg);
+        }
     }
   },
 });
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
 @import '../assets/variables.scss';
 .draw-area {
     height: 400px;
     width: 310px;
     background-color: $bg-color;
     display: inline-block;
+    text-align: left;
+    position: relative;
 }
 path {
   fill: none;
@@ -99,5 +108,8 @@ path {
 button.erase {
     font: initial;
     fill: white;
+    top: 10px;
+    left: 10px;
+    position: absolute;
 }
 </style>

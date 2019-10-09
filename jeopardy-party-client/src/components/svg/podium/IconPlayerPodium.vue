@@ -63,11 +63,12 @@
        id="rect4588"
        style="fill:url(#radialGradient4600);fill-opacity:1;stroke:#6c5d53;stroke-width:4.17449713;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"/>
    <text class="winnings" :class="{ negative: player.winnings < 0 }" x="50%" y="45" dominant-baseline="middle" text-anchor="middle">${{ player.winnings || 0 }}</text>
-   <foreignObject x="0" y="72.6" width="100%" height="157.5" dominant-baseline="middle" text-anchor="middle">
+   <foreignObject v-if="!player.signature" x="0" y="72.6" width="100%" height="157.5" dominant-baseline="middle" text-anchor="middle">
       <div class="name-container">
          <span class="player-name">{{ player.username }}</span>
       </div>
    </foreignObject>
+   <svg v-else v-html="player.signature" x="0" y="72.6" height="157.5"></svg>
   </g>
 </svg>
 </template>

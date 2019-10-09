@@ -21,9 +21,9 @@
     <Modal :show.sync="showModal">
       <h5 slot="modal-header" class="modal-title">Sign your name (optional)</h5>
       <div slot="modal-body" class="text-center">
-        <SignName></SignName>
+        <SignName ref="signName"></SignName>
       </div>
-      <button slot="modal-footer" type="button" class="btn btn-primary">Save</button>
+      <button slot="modal-footer" type="button" class="btn btn-primary" @click="saveSig()">Save</button>
     </Modal>
   </div>
 </template>
@@ -62,6 +62,12 @@ export default Vue.extend({
   },
   mounted() {
     this.showModal = true; // Prompt for signature when user first navigates
+  },
+  methods: {
+    saveSig() {
+      this.$refs.signName.submit();
+      this.showModal = false;
+    },
   },
 });
 </script>
