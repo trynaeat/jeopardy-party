@@ -32,6 +32,8 @@ export default Vue.extend({
   },
   mounted() {
       this.pt = (<any>this.$refs.svgArea).createSVGPoint();
+      document.addEventListener('mouseup', this.clickEnd);
+      document.addEventListener('touchend', this.touchEnd);
   },
   methods: {
     cursorPoint(evt: MouseEvent | Touch) {
@@ -56,6 +58,7 @@ export default Vue.extend({
         this.newPath(loc);
     },
     clickEnd() {
+        console.log('clickend');
         this.mousedown = false;
     },
     touchStart(evt: TouchEvent) {
@@ -82,10 +85,14 @@ export default Vue.extend({
     submit () {
         if (this.paths.length > 0) {
             const s = new XMLSerializer();
-            const serializedSvg = s.serializeToString(this.$refs.svgArea);
+            const serializedSvg = s.serializeToString(<any>(this.$refs.svgArea));
             this.$socket.emit('setSignature', serializedSvg);
         }
     }
+  },
+  beforeDestroy() {
+      document.removeEventListener('mouseup', this.clickEnd);
+      document.removeEventListener('touchend', this.touchEnd);
   },
 });
 </script>

@@ -65,7 +65,7 @@ export default Vue.extend({
   },
   methods: {
     saveSig() {
-      this.$refs.signName.submit();
+      (<any>this.$refs.signName).submit();
       this.showModal = false;
     },
   },
