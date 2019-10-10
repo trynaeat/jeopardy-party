@@ -25,14 +25,14 @@ export class GameUpdate {
     public gameTimer: SanitizedTimer;
     public round: Round;
 
-    constructor(game: Game) {
+    constructor(game: Game, firstUpdate = false) {
         this.state = game.fsm.state;
         this.host = game.host && new SanitizedUser(game.host);
         this.judge = game.judge && new SanitizedUser(game.judge);
-        this.players = game.players.map(user => new SanitizedUser(user));
+        this.players = game.players.map(user => firstUpdate ? new SanitizedUser(user) : _.omit(new SanitizedUser(user), 'signature'));
         this.activeQuestion = game.activeQuestion ? new SanitizedQuestion(game.activeQuestion) : null;
-        this.activePlayer = game.activePlayer ? new SanitizedUser(game.activePlayer) : null;
-        this.playersTurn = game.playersTurn ? new SanitizedUser(game.playersTurn) : null;
+        this.activePlayer = game.activePlayer ? _.omit(new SanitizedUser(game.activePlayer), 'signature') : null;
+        this.playersTurn = game.playersTurn ? _.omit(new SanitizedUser(game.playersTurn), 'signature') : null;
         this.buzzerTimer = game.buzzerTimer ? new SanitizedTimer(game.buzzerTimer) : null;
         this.gameTimer = game.gameTimer ? new SanitizedTimer(game.gameTimer) : null;
         this.board = _.mapValues(game.board, round => {

@@ -59,6 +59,14 @@ const store: StoreOptions<RootState> = {
       state.currentUser = user;
     },
     setPlayers(state, players: User[]) {
+      // Keep any signatures around so they aren't erased
+      players = players.map((p) => {
+        const found = _.find(state.players, (oldP) => oldP.username === p.username);
+        if (found) {
+          p.signature = found.signature;
+        }
+        return p;
+      });
       state.players = players;
     },
     setActivePlayer(state, player: User) {
@@ -81,6 +89,13 @@ const store: StoreOptions<RootState> = {
     },
     setRound(state, round: Round) {
       state.round = round;
+    },
+    SOCKET_updatePlayer(state, player: User) {
+      const idx = _.findIndex(state.players, p => p.username === player.username);
+      if (idx !== -1) {
+        state.players[idx] = player;
+      }
+      state.players = _.cloneDeep(state.players); // Change detect
     },
     SOCKET_role(state, role: Role) {
       state.role = role;

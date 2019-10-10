@@ -1,7 +1,7 @@
 import * as StateMachine from 'javascript-state-machine';
 import { GameBoard } from './game-board';
 import { Round } from './round';
-import { User } from './user';
+import { User, SanitizedUser } from './user';
 import { HostAction } from './host-action';
 import { PlayerAction } from './player-action';
 import { JudgeAction } from './judge-action';
@@ -13,6 +13,7 @@ import { socketServer } from './socket-server';
 import { Question } from './question';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { validateWager } from '../utils/validators';
 
 export class Game {
     private _roomId: string;
@@ -25,11 +26,13 @@ export class Game {
     public judge: User;
     public players: User[] = [];
     public buzzedPlayers: User[] = [];
+    public wageredPlayers: User[] = [];
     public buzzerTimer: Timer;
     public gameTimer: Timer;
     public wasCorrect: boolean;
     private spectators: User[] = [];
     private resetBuzzer$ = new Subject();
+    private resetGameTimer$ = new Subject();
     public fsm = new StateMachine({
         init: 'awaitPlayers',
         transitions: [
@@ -162,7 +165,7 @@ export class Game {
         user.socket.on('disconnect', () => {
             this.removePlayer(user);
         });
-        this.syncAll();
+        this.syncAll(true);
         return true;
     }
 
@@ -202,7 +205,20 @@ export class Game {
         });
         user.socket.on('setSignature', (signature: string) => {
             user.signature = signature;
-            this.syncAll();
+            // I keep the signatures a separate event from a main game state sync because they can get large
+            socketServer().to(`room_${this._roomId}`).emit('updatePlayer', new SanitizedUser(user));
+        });
+        user.socket.on('placeWager', (wager: number) => {
+            if (this.fsm.is('finalWager') && validateWager(wager, user.winnings)) {
+                user.wager = wager;
+                this.wageredPlayers.push(user);
+                this.wageredPlayers = _.uniq(this.wageredPlayers);
+                if (this.wageredPlayers.length === this.players.length) {
+                    this.resetGameTimer$.next();
+                    this.fsm.finishWager();
+                }
+                this.syncAll();
+            }
         });
     }
 
@@ -311,9 +327,10 @@ export class Game {
 
     /**
      * Sync everyone in the game (spectator/player/judge/host) with the current state
+     * * @param firstUpdate if this is an update on a new player connecting, we may send additional information (like player signatures)
      */
-    private syncAll() {
-        const state = new GameUpdate(this);
+    private syncAll(firstUpdate = false) {
+        const state = new GameUpdate(this, firstUpdate);
         socketServer().to(`room_${this._roomId}`).emit('sync', state);
     }
 

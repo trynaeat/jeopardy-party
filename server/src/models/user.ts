@@ -5,6 +5,7 @@ export class User {
   private _username?: string; // User's screen name
   private _socket: Socket; // Socket.io socket associated with user
   private _winnings = 0; // If they're a player, their money total
+  private _wager?: number; // Final jeopardy wager
   private _signature?: string; // User's drawn signature, as an SVG image
 
   constructor(id: string, socket: Socket, username?: string,) {
@@ -35,6 +36,14 @@ export class User {
 
   set winnings(total: number) {
     this._winnings = total;
+  }
+
+  get wager(): number {
+    return this._wager;
+  }
+
+  set wager(wager: number) {
+    this._wager = wager;
   }
 
   get signature(): string {

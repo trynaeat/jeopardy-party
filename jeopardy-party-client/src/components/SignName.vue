@@ -58,7 +58,6 @@ export default Vue.extend({
         this.newPath(loc);
     },
     clickEnd() {
-        console.log('clickend');
         this.mousedown = false;
     },
     touchStart(evt: TouchEvent) {
