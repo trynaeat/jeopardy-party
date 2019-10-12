@@ -4,6 +4,7 @@
       <h1>Judging</h1>
       <QuestionPrompt v-if="currentState === 'readQuestion' || currentState === 'playerAnswer' || currentState === 'judgingAnswer' || currentState === 'buzzersArmed'"></QuestionPrompt>
       <Answer v-if="currentState === 'showingAnswer'"></Answer>
+      <RoundAdvance v-if="currentState === 'roundAdvance'"></RoundAdvance>
     </div>
     <div>
       <Timer></Timer>
@@ -16,6 +17,7 @@ import Vue from 'vue';
 import Answer from './Answer.vue';
 import Timer from './Timer.vue';
 import QuestionPrompt from './QuestionPrompt.vue';
+import RoundAdvance from './RoundAdvance.vue';
 import { mapState } from 'vuex';
 import * as _ from 'lodash-es';
 
@@ -24,6 +26,7 @@ export default Vue.extend({
   components: {
     Answer,
     QuestionPrompt,
+    RoundAdvance,
     Timer,
   },
   computed: {

@@ -1,6 +1,8 @@
 <template>
-  <div>
-    <h1>Spectating</h1>
+  <div class="flex-fluid">
+    <div class="flex flex-center">
+      <h1>Spectating</h1>
+    </div>
     <template v-if="currentState === 'waitingForGame'">
       <span>Waiting for game...</span>
     </template>

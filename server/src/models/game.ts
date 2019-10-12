@@ -71,9 +71,13 @@ export class Game {
                     this.playersTurn = null;
                 }
                 this.gameTimer = new Timer(3000, 100);
-                const sub = this.gameTimer.timer$.subscribe((timeRemaining: number) => {
+                this.gameTimer.timer$
+                .pipe(
+                    takeUntil(this.resetGameTimer$),
+                )
+                .subscribe((timeRemaining: number) => {
                     if (timeRemaining < 1) {
-                        sub.unsubscribe();
+                        this.resetGameTimer$.next();
                         this.gameTimer = null;
                         if (this.round === Round.FINAL_JEOPARDY) {
                             this.fsm.advanceToFinal();
@@ -85,16 +89,51 @@ export class Game {
                 });
                 this.gameTimer.startTimer();
             },
+            onAdvanceToFinal: () => {
+                /* Anyone with less than 0 bucks is out of the game */
+                _.remove(this.players, p => {
+                    if (p.winnings < 1) {
+                        p.socket.emit('role', Role.SPECTATOR);
+                        return true;
+                    }
+                });
+                /* set 30 second timer to enter wagers */
+                this.resetGameTimer$.next();
+                this.gameTimer = new Timer(30000, 100);
+                this.gameTimer.timer$.pipe(
+                    takeUntil(this.resetGameTimer$),
+                )
+                .subscribe((timeRemaining: number) => {
+                    if (timeRemaining < 1) {
+                        this.resetGameTimer$.next();
+                        this.gameTimer = null;
+                        /* Anyone who hasn't bet yet gets a bet of $0 */
+                        this.players = this.players.map(p => {
+                            if (!p.wager) {
+                                p.wager = 0;
+                            }
+                            return p;
+                        });
+                        this.fsm.finishWager();
+                        this.syncAll();
+                    }
+                });
+                this.gameTimer.startTimer();
+            },
             onQuestionFail: () => {
                 this.activePlayer = null;
             },
             onShowAnswer: () => {
                 this.activeQuestion.answered = true;
                 this.gameTimer = new Timer(3000, 100);
-                const sub = this.gameTimer.timer$.subscribe((timeRemaining: number) => {
+                this.gameTimer.timer$
+                .pipe(
+                    takeUntil(this.resetGameTimer$),
+                )
+                .subscribe((timeRemaining: number) => {
                     // Time's up! Go back to the board or advance the round.
                     if (timeRemaining < 1) {
-                        sub.unsubscribe();
+                        this.resetGameTimer$.next();
                         this.gameTimer = null;
                         if (this.allAnswered(this.round)) {
                             this.fsm.advanceRound();
@@ -116,10 +155,14 @@ export class Game {
                 this.activeQuestion = null;
                 this.wasCorrect = false;
                 this.gameTimer = new Timer(3000, 100);
-                const sub = this.gameTimer.timer$.subscribe((timeRemaining: number) => {
+                this.gameTimer.timer$
+                .pipe(
+                    takeUntil(this.resetGameTimer$),
+                )
+                .subscribe((timeRemaining: number) => {
                     // Time's up! Go back to the board or advance the round.
                     if (timeRemaining < 1) {
-                        sub.unsubscribe();
+                        this.resetGameTimer$.next();
                         this.gameTimer = null;
                         // can't skip during final jeopardy, so no check here
                         if (this.allAnswered(this.round)) {

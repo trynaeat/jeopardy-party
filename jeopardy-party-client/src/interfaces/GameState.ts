@@ -21,5 +21,6 @@ export interface GameState {
     playersTurn?: User;
     activeQuestion?: Question;
     buzzerTimer?: ITimer;
+    gameTimer?: ITimer;
     round: Round;
 }

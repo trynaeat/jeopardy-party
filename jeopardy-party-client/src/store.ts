@@ -3,12 +3,15 @@ import Vuex, { StoreOptions } from 'vuex';
 import { GameBoard, GameState, GameStep, Question, Role, RootState, Round, ITimer, Toast, User } from './interfaces';
 import { Timer } from './utils/Timer';
 import * as _ from 'lodash-es';
-import { Subscription } from 'rxjs';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 Vue.use(Vuex);
 
-let timerSub: Subscription;
+const buzzerSync$ = new Subject();
+const gameTimerSync$ = new Subject();
 let buzzerTimer: Timer;
+let gameTimer: Timer;
 
 /**
  * Note anything with the STORE_ prefix gets called automagically by vue-socket.io
@@ -27,6 +30,7 @@ const store: StoreOptions<RootState> = {
     activePlayer: undefined,
     playersTurn: undefined,
     buzzerTimer: undefined,
+    gameTimer: undefined,
     judge: undefined,
     answer: undefined,
   },
@@ -81,6 +85,9 @@ const store: StoreOptions<RootState> = {
     setBuzzerTimer(state, timer: ITimer) {
       state.buzzerTimer = timer;
     },
+    setGameTimer(state, timer: ITimer) {
+      state.gameTimer = timer;
+    },
     setJudge(state, judge: User) {
       state.judge = judge;
     },
@@ -117,6 +124,10 @@ const store: StoreOptions<RootState> = {
       this.commit('setBoard', gameState.board);
       this.commit('setCurrentState', gameState.state);
       this.commit('setPlayers', gameState.players);
+      // If there's a current user, update them as well
+      if (state.state.currentUser && _.find(gameState.players, (p) => p.username === _.get(state.state.currentUser, 'username'))) {
+        this.commit('setCurrentUser', _.find(gameState.players, (p) => p.username === _.get(state.state.currentUser, 'username')));
+      }
       this.commit('setActivePlayer', gameState.activePlayer);
       this.commit('setPlayersTurn', gameState.playersTurn);
       this.commit('setJudge', gameState.judge);
@@ -125,19 +136,35 @@ const store: StoreOptions<RootState> = {
       if (buzzerTimer) {
         buzzerTimer.stopTimer();
       }
+      if (gameTimer) {
+        gameTimer.stopTimer();
+      }
       this.commit('setBuzzerTimer', gameState.buzzerTimer);
-      // Start local timer and count down
+      // Start local buzzer timer and count down
       if (gameState.buzzerTimer) {
         buzzerTimer = new Timer(gameState.buzzerTimer.timeRemaining, 100);
-        if (timerSub) {
-          timerSub.unsubscribe();
-        }
-        timerSub = buzzerTimer.timer$.subscribe(
+        buzzerSync$.next();
+        buzzerTimer.timer$.pipe(
+          takeUntil(buzzerSync$),
+        )
+        .subscribe(
           (timeRemaining: number) => {
             this.commit('setBuzzerTimer', { timeRemaining, timeLimit: buzzerTimer.timeLimit });
           },
         );
         buzzerTimer.startTimer();
+      }
+      // Same for general game timer
+      if (gameState.gameTimer) {
+        gameTimer = new Timer(gameState.gameTimer.timeRemaining, 100);
+        gameTimerSync$.next();
+        gameTimer.timer$.pipe(
+          takeUntil(gameTimerSync$),
+        )
+        .subscribe((timeRemaining: number) => {
+          this.commit('setGameTimer', { timeRemaining, timeLimit: gameTimer.timeLimit });
+        });
+        gameTimer.startTimer();
       }
 
     },

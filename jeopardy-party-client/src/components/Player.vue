@@ -14,6 +14,9 @@
       <h3 v-if="currentState === 'playerAnswer'">Currently Answering: {{ activePlayer ? activePlayer.username : '' }}</h3>
       <h3 v-if="currentState === 'judgingAnswer'">Waiting on Judge...</h3>
       <Answer v-if="currentState === 'showingAnswer'"></Answer>
+      <RoundAdvance v-if="currentState === 'roundAdvance'"></RoundAdvance>
+      <Wager v-if="currentState === 'finalWager'"></Wager>
+      <FinalJeopardy v-if="currentState === 'finalJeopardy'"></FinalJeopardy>
     </div>
     <div>
       <Timer></Timer>
@@ -32,9 +35,12 @@
 import Vue from 'vue';
 import Modal from './common/Modal.vue';
 import Answer from './Answer.vue';
+import FinalJeopardy from './FinalJeopardy.vue';
 import PlayerBuzzer from './PlayerBuzzer.vue';
+import RoundAdvance from './RoundAdvance.vue';
 import SignName from './SignName.vue';
 import Timer from './Timer.vue';
+import Wager from './Wager.vue';
 import { mapState } from 'vuex';
 import * as _ from 'lodash-es';
 
@@ -42,10 +48,13 @@ export default Vue.extend({
   name: 'Player',
   components: {
     Answer,
+    FinalJeopardy,
     Modal,
     PlayerBuzzer,
+    RoundAdvance,
     SignName,
     Timer,
+    Wager,
   },
   computed: {
     ...mapState({
