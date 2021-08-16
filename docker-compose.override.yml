@@ -14,8 +14,8 @@ services:
     build:
       context: ./server
       dockerfile: .docker/dev.dockerfile
-    image: file-manager-server-dev
-    container_name: file-manager-server-dev
+    # image: file-manager-server-dev
+    container_name: server-dev
     ports:
       - "3000:3000"
       - "3001:3001"
