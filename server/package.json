@@ -23,7 +23,7 @@
     "luxon": "^1.19.2",
     "passport-jwt": "^4.0.0",
     "password-hash": "^1.2.2",
-    "pg": "^7.12.1",
+    "pg": "^8.7.1",
     "randomstring": "^1.1.5",
     "rxjs": "^6.5.3",
     "socket.io": "^2.2.0"
@@ -39,7 +39,7 @@
     "@types/luxon": "^1.15.2",
     "@types/passport-jwt": "^3.0.1",
     "@types/password-hash": "^1.2.20",
-    "@types/pg": "^7.11.1",
+    "@types/pg": "^8.6.1",
     "@types/randomstring": "^1.1.6",
     "@types/socket.io": "^2.1.2",
     "nodemon": "^1.19.1",

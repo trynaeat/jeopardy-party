@@ -14,6 +14,7 @@ router.post('/game', async ctx => {
   const room = new Room(id, new Game(id, board));
   (<Lobby>ctx.lobby).addRoom(room);
   ctx.body = { roomId: id };
+  ctx.status = 200;
 });
 
 router.get('/game/:id', ctx => {
