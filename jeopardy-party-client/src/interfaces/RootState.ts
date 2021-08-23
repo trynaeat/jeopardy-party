@@ -22,4 +22,6 @@ export interface RootState {
     gameTimer?: ITimer;
     judge?: User;
     answer?: string;
+    debug: boolean;
+    keyBuffer: string[];
 }

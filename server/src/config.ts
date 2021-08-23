@@ -7,4 +7,5 @@ export const config = {
     port: 5432,
   },
   jwtSecret: 'secrettoken',
+  debug: false,
 };

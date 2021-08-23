@@ -8,8 +8,24 @@ import { router as loginRoutes } from './routes/login';
 import { router as gameRoutes } from './routes/game';
 import * as https from 'https';
 import * as fs from 'fs';
-import { Lobby, socketInitialize, User } from './models';
+import { Lobby, socketInitialize } from './models';
 import { Pool } from 'pg';
+import { hideBin } from 'yargs/helpers';
+import yargs from 'yargs';
+
+const argv = yargs(hideBin(process.argv))
+  .options(
+    {
+      d: { type: 'boolean', default: false },
+    },
+  )
+  .parseSync();
+
+config.debug = argv.d;
+if (config.debug) {
+  console.log('Debug mode on');
+}
+
 
 const httpsOptions = {
   key: fs.readFileSync(`${__dirname}/../ssl/server.key`),

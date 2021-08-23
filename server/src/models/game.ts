@@ -11,9 +11,18 @@ import { Timer } from './timer';
 import * as _ from 'lodash';
 import { socketServer } from './socket-server';
 import { Question } from './question';
-import { Subject } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { validateWager } from '../utils/validators';
+import { DebugAction } from './debug-action';
+import { config } from '../config';
+
+interface BuzzerPenalty {
+    [userId: string]: {
+        timer: Timer;
+        sub: Subscription;
+    }
+}
 
 export class Game {
     private _roomId: string;
@@ -26,6 +35,7 @@ export class Game {
     public judge: User;
     public players: User[] = [];
     public buzzedPlayers: User[] = [];
+    public buzzerPenalty: BuzzerPenalty = { };
     public wageredPlayers: User[] = [];
     public buzzerTimer: Timer;
     public gameTimer: Timer;
@@ -51,6 +61,7 @@ export class Game {
             { name: 'finishWager', from: 'finalWager', to: 'finalJeopardy' },
             { name: 'showAnswers', from: 'finalJeopardy', to: 'showingFinalAnswer' },
             { name: 'endGame', from: 'showingFinalAnswer', to: 'showingWinner' },
+            { name: 'debugAdvance', from: 'questionBoard', to: 'roundAdvance' },
         ],
         methods: {
             onStartGame: () => {
@@ -60,39 +71,15 @@ export class Game {
                 this.buzzedPlayers = [];
             },
             onAdvanceRound: () => {
-                this.wasCorrect = null;
-                this.activePlayer = null;
-                this.activeQuestion = null;
-                if (this.round === Round.JEOPARDY) {
-                    this.round = Round.DOUBLE_JEOPARDY;
-                    this.playersTurn = _.sortBy(this.players, 'winnings')[0]; // Player with lowest total starts next round
-                } else {
-                    this.round = Round.FINAL_JEOPARDY;
-                    this.playersTurn = null;
-                }
-                this.gameTimer = new Timer(3000, 100);
-                this.gameTimer.timer$
-                .pipe(
-                    takeUntil(this.resetGameTimer$),
-                )
-                .subscribe((timeRemaining: number) => {
-                    if (timeRemaining < 1) {
-                        this.resetGameTimer$.next();
-                        this.gameTimer = null;
-                        if (this.round === Round.FINAL_JEOPARDY) {
-                            this.fsm.advanceToFinal();
-                        } else {
-                            this.fsm.advanceToBoard();
-                        }
-                        this.syncAll();
-                    }
-                });
-                this.gameTimer.startTimer();
+                this._advanceRound();
+            },
+            onDebugAdvance: () => {
+                this._advanceRound();
             },
             onAdvanceToFinal: () => {
                 /* Anyone with less than 0 bucks is out of the game */
                 _.remove(this.players, p => {
-                    if (p.winnings < 1) {
+                    if (p.winnings < 0) {
                         p.socket.emit('role', Role.SPECTATOR);
                         return true;
                     }
@@ -219,11 +206,42 @@ export class Game {
         this.syncAll();
     }
 
+    private _advanceRound () {
+        this.wasCorrect = null;
+        this.activePlayer = null;
+        this.activeQuestion = null;
+        if (this.round === Round.JEOPARDY) {
+            this.round = Round.DOUBLE_JEOPARDY;
+            this.playersTurn = _.sortBy(this.players, 'winnings')[0]; // Player with lowest total starts next round
+        } else {
+            this.round = Round.FINAL_JEOPARDY;
+            this.playersTurn = null;
+        }
+        this.gameTimer = new Timer(3000, 100);
+        this.gameTimer.timer$
+        .pipe(
+            takeUntil(this.resetGameTimer$),
+        )
+        .subscribe((timeRemaining: number) => {
+            if (timeRemaining < 1) {
+                this.resetGameTimer$.next();
+                this.gameTimer = null;
+                if (this.round === Round.FINAL_JEOPARDY) {
+                    this.fsm.advanceToFinal();
+                } else {
+                    this.fsm.advanceToBoard();
+                }
+                this.syncAll();
+            }
+        });
+        this.gameTimer.startTimer();
+    }
+
     private listenToPlayer(user: User) {
         user.socket.on('playerAction', (action: PlayerAction, options: any) => {
             switch(action) {
                 case PlayerAction.BUZZ_IN:
-                    if (this.fsm.can('buzzIn') && !this.buzzedPlayers.find(u => u === user)) {
+                    if (this.fsm.can('buzzIn') && !this.buzzedPlayers.find(u => u === user) && !this.buzzerPenalty[user.id]) {
                         this.fsm.buzzIn();
                         this.activePlayer = user;
                         this.buzzedPlayers.push(user);
@@ -243,6 +261,28 @@ export class Game {
                         });
                         this.syncAll();
                         this.buzzerTimer.startTimer();
+                    // Penalize buzzing in before the buzzers are armed
+                    } else if (!this.fsm.can('buzzIn')) {
+                        if (this.buzzerPenalty[user.id]) {
+                            // Stop existing timer
+                            this.buzzerPenalty[user.id].timer.resetTimer();
+                            this.buzzerPenalty[user.id].sub.unsubscribe();
+                        }
+
+                        const newTimer = new Timer(250, 10);
+                        const sub = newTimer.timer$
+                            .subscribe(timeRemaining => {
+                                if (timeRemaining < 1) {
+                                    newTimer.resetTimer();
+                                    sub.unsubscribe();
+                                    delete this.buzzerPenalty[user.id];
+                                }
+                            });
+                        newTimer.startTimer();
+                        this.buzzerPenalty[user.id] = {
+                            timer: newTimer,
+                            sub,
+                        };
                     }
             }
         });
@@ -261,6 +301,8 @@ export class Game {
                     this.fsm.finishWager();
                 }
                 this.syncAll();
+            } else {
+                user.socket.emit('room_error', 'Invalid wager.');
             }
         });
     }
@@ -363,6 +405,13 @@ export class Game {
                 this.fsm.selectQuestion();
                 // Send the judge (and only the judge) the answer
                 this.judge.socket.emit('question_answer', this.activeQuestion.answer);
+                this.syncAll();
+            }
+        });
+
+        user.socket.on(DebugAction.ADVANCE_ROUND, () => {
+            if (config.debug && this.fsm.can('debugAdvance')) {
+                this.fsm.debugAdvance();
                 this.syncAll();
             }
         });

@@ -7,11 +7,15 @@ export class Timer {
     private interval$: Observable<number>;
     private pause$ = new Subject<boolean>();
     private resume$ = new Subject<boolean>();
-    private reset$ = new Subject();
+    private _reset$ = new Subject();
     private subscription$: Subscription;
     private internalTimer$: Observable<number>;
-    public timer$ = new Subject<number>();
+    private _timer$ = new Subject<number>();
     public timeRemaining: number; // In ms
+
+    public get timer$() {
+        return this._timer$.asObservable();
+    }
 
     get timeLimit() {
         return this._timeLimit;
@@ -31,7 +35,7 @@ export class Timer {
             this.subscription$ = this.internalTimer$.subscribe(
                 timeRemaining => {
                     this.timeRemaining = timeRemaining;
-                    this.timer$.next(timeRemaining);
+                    this._timer$.next(timeRemaining);
                 },
             );
         }
@@ -43,7 +47,7 @@ export class Timer {
     }
 
     public resetTimer() {
-        this.reset$.next();
+        this._reset$.next();
         this.subscription$ = null;
         this.restartTimer();
     }
@@ -56,7 +60,7 @@ export class Timer {
             switchMap((val: boolean) => (val ? this.interval$ : empty())),
             scan((acc: number, curr: number) => (curr ? curr + acc : acc), this._timeLimit),
             takeWhile(v => v >= 0),
-            takeUntil(this.reset$),
+            takeUntil(this._reset$),
         );
     }
 }

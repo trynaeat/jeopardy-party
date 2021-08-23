@@ -1,5 +1,8 @@
 <template>
   <div class="flex">
+    <div class="debug" v-if="debug">
+      <Debug></Debug>
+    </div>
     <div class="side-lights">
       <BoardLights :lit="armed"></BoardLights>
     </div>
@@ -26,10 +29,12 @@ import Player from '@/components/Player.vue';
 import Judge from '@/components/Judge.vue';
 import Players from '@/components/Players.vue';
 import BoardLights from '@/components/svg/boardLights/boardLights.vue';
+import Debug from '@/components/Debug.vue';
 
 export default Vue.extend({
   name: 'PlayGame',
   components: {
+    Debug,
     Host,
     Spectator,
     Player,
@@ -40,6 +45,9 @@ export default Vue.extend({
   mounted: function() {
     console.log('joining...');
     this.$socket.emit('game_join', this.$route.params.id);
+    window.addEventListener('keypress', (event: KeyboardEvent) => {
+      this.$store.dispatch('addKeyBuffer', event.key);
+    });
   },
   methods: {
     onClick: function() {
@@ -50,6 +58,7 @@ export default Vue.extend({
     ...mapState({
         role: (state: any) => state.role,
         armed: (state: any) => state.currentState === 'buzzersArmed',
+        debug: (state: any) => state.debug,
     }),
   },
 });
@@ -61,5 +70,9 @@ export default Vue.extend({
 }
 .main {
   height: 95vh;
+}
+.debug {
+  z-index: 9999;
+  position: fixed;
 }
 </style>

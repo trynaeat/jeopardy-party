@@ -8,6 +8,7 @@ import { takeUntil } from 'rxjs/operators';
 
 Vue.use(Vuex);
 
+const superSecretDebugKey = 'mikerichardssucks';
 const buzzerSync$ = new Subject();
 const gameTimerSync$ = new Subject();
 let buzzerTimer: Timer;
@@ -19,6 +20,8 @@ let gameTimer: Timer;
  */
 const store: StoreOptions<RootState> = {
   state: {
+    debug: false,
+    keyBuffer: [],
     toasts: [],
     role: Role.SPECTATOR,
     board: null,
@@ -97,6 +100,12 @@ const store: StoreOptions<RootState> = {
     setRound(state, round: Round) {
       state.round = round;
     },
+    setDebug(state, debug: boolean) {
+      state.debug = debug;
+    },
+    setKeyBuffer(state, buffer: string[]) {
+      state.keyBuffer = buffer;
+    },
     SOCKET_updatePlayer(state, player: User) {
       const idx = _.findIndex(state.players, p => p.username === player.username);
       if (idx !== -1) {
@@ -109,6 +118,24 @@ const store: StoreOptions<RootState> = {
     },
   },
   actions: {
+    addKeyBuffer({ commit, dispatch, state }, key: string) {
+      // Do nothing if debug already enabled
+      if (state.debug) {
+        return;
+      }
+
+      commit('setKeyBuffer', [...state.keyBuffer, key]);
+      const len = state.keyBuffer.length;
+      if (superSecretDebugKey[len - 1] !== key) {
+        dispatch('clearKeyBuffer');
+      } else if (len === superSecretDebugKey.length) {
+        commit('setDebug', true);
+        dispatch('clearKeyBuffer');
+      }
+    },
+    clearKeyBuffer({ commit }) {
+      commit('setKeyBuffer', []);
+    },
     SOCKET_room_error(state, message: string) {
       this.commit('pushToast', {
         status: 'error',
