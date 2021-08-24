@@ -5,6 +5,7 @@ import { Timer } from './utils/Timer';
 import * as _ from 'lodash-es';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { FinalAnswerEvent } from './interfaces/User';
 
 Vue.use(Vuex);
 
@@ -145,6 +146,16 @@ const store: StoreOptions<RootState> = {
     },
     SOCKET_question_answer(state, answer: string) {
       this.commit('setAnswer', answer);
+    },
+    SOCKET_final_answer({ commit, state }, answer: FinalAnswerEvent[]) {
+      const newPlayers = state.players.map(p => {
+        const found = answer.find(e => e.username === p.username);
+        p.wager = found && found.wager;
+        p.finalAnswer = found && found.finalAnswer;
+        return p;
+      });
+
+      commit('setPlayers', newPlayers);
     },
     SOCKET_sync(state, gameState: GameState) {
       console.log('game sync!');

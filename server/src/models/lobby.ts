@@ -1,3 +1,4 @@
+import { config } from '../config';
 import { Room } from './room';
 import { User } from './user';
 
@@ -25,7 +26,9 @@ export class Lobby {
   }
 
   private listenToUser(user: User) {
-    console.log(`New User Registered ${user.id}`);
+    if (config.debug) {
+      console.log(`New User Registered ${user.id}`);
+    }
     user.socket.on('game_join', (roomId: string) => {
       user.socket.leaveAll();
       const room = this.rooms.find(room => room.id === roomId);

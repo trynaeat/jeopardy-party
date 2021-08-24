@@ -24,6 +24,28 @@ interface BuzzerPenalty {
     }
 }
 
+export enum USER_ERROR_TYPE {
+    ROOM_FULL = 'roomFull',
+    NAME_TAKEN = 'nameTaken',
+};
+export class UserJoinError extends Error {
+    private _type: USER_ERROR_TYPE;
+    private _msgPretty: string;
+    constructor(msg: string, type: USER_ERROR_TYPE) {
+        super(msg);
+        this._type = type;
+        this._msgPretty = msg;
+    }
+
+    public get type() {
+        return this._type;
+    }
+
+    public get msgPretty() {
+        return this._msgPretty;
+    }
+};
+
 export class Game {
     private _roomId: string;
     public activeQuestion: Question;
@@ -35,6 +57,7 @@ export class Game {
     public judge: User;
     public players: User[] = [];
     public buzzedPlayers: User[] = [];
+    public answeredPlayers: User[] = []; // Users who have submitted final jeopardy answers
     public buzzerPenalty: BuzzerPenalty = { };
     public wageredPlayers: User[] = [];
     public buzzerTimer: Timer;
@@ -107,6 +130,41 @@ export class Game {
                 });
                 this.gameTimer.startTimer();
             },
+            onFinalJeopardy: () => {
+                this.activeQuestion = this.selectQuestion(_.keys(this.board[Round.FINAL_JEOPARDY])[0], 0);
+                /* set 30 second timer to answer */
+                this.resetGameTimer$.next();
+                this.gameTimer = new Timer(30000, 100);
+                this.gameTimer.timer$.pipe(
+                    takeUntil(this.resetGameTimer$),
+                )
+                .subscribe((timeRemaining: number) => {
+                    if (timeRemaining < 1) {
+                        this.resetGameTimer$.next();
+                        this.gameTimer = null;
+                        this.fsm.showAnswers();
+                        this.syncAll();
+                    }
+                });
+                this.syncAll();
+                this.gameTimer.startTimer();
+            },
+            onShowAnswers: () => {
+                // Emit final answers and wagers to everyone
+                socketServer()
+                    .to(`room_${this._roomId}`)
+                    .emit(
+                        'final_answer',
+                        this.players.map(p => ({
+                            id: p.id,
+                            username: p.username,
+                            finalAnswer: p.finalAnswer,
+                            wager: p.wager,
+                        })),
+                    );
+                // Emit correct answer to everyone
+                socketServer().to(`room_${this._roomId}`).emit('question_answer', this.activeQuestion.answer);
+            },
             onQuestionFail: () => {
                 this.activePlayer = null;
             },
@@ -125,8 +183,6 @@ export class Game {
                         if (this.allAnswered(this.round)) {
                             this.fsm.advanceRound();
                             this.syncAll();
-                        } else if (this.round === Round.FINAL_JEOPARDY) {
-                            this.fsm.endGame();
                         } else {
                             this.fsm.returnToBoard();
                         }
@@ -185,7 +241,10 @@ export class Game {
 
     public addPlayer(user: User, username: string) {
         if (this.players.length >= 3) {
-            return false;
+            throw new UserJoinError('Players are full!', USER_ERROR_TYPE.ROOM_FULL);
+        }
+        if (this.players.find(p => p.username === username)) {
+            throw new UserJoinError('Name is taken!', USER_ERROR_TYPE.NAME_TAKEN);
         }
         user.username = username;
         this.players.push(user);
@@ -286,12 +345,12 @@ export class Game {
                     }
             }
         });
-        user.socket.on('setSignature', (signature: string) => {
+        user.socket.on(PlayerAction.SET_SIGNATURE, (signature: string) => {
             user.signature = signature;
             // I keep the signatures a separate event from a main game state sync because they can get large
             socketServer().to(`room_${this._roomId}`).emit('updatePlayer', new SanitizedUser(user));
         });
-        user.socket.on('placeWager', (wager: number) => {
+        user.socket.on(PlayerAction.PLACE_WAGER, (wager: number) => {
             if (this.fsm.is('finalWager') && validateWager(wager, user.winnings)) {
                 user.wager = wager;
                 this.wageredPlayers.push(user);
@@ -303,6 +362,22 @@ export class Game {
                 this.syncAll();
             } else {
                 user.socket.emit('room_error', 'Invalid wager.');
+            }
+        });
+        user.socket.on(PlayerAction.ANSWER_FINAL, (answer: string) => {
+            // do nothing if we're not in final jeopardy
+            if (!this.fsm.can('showAnswers')) {
+                return;
+            }
+
+            user.finalAnswer = answer;
+            user.hasAnswered = true;
+            this.answeredPlayers.push(user);
+            this.syncAll();
+            if (this.answeredPlayers.length === this.players.length) {
+                this.resetGameTimer$.next();
+                this.fsm.showAnswers();
+                this.syncAll();
             }
         });
     }
@@ -385,6 +460,24 @@ export class Game {
                 this.syncAll();
             }
         });
+        user.socket.on(JudgeAction.RULE_FINAL, (correctPlayers: string[]) => {
+            if (!this.fsm.can('endGame')) {
+                return;
+            } 
+
+            this.players = this.players.map(player => {
+                if (correctPlayers.find(p => p === player.username)) {
+                    player.winnings += player.wager;
+                } else {
+                    player.winnings -= player.wager;
+                }
+
+                return player;
+            });
+
+            this.fsm.endGame();
+            this.syncAll();
+        });
     }
 
     private listenToHost(user: User) {
@@ -407,6 +500,10 @@ export class Game {
                 this.judge.socket.emit('question_answer', this.activeQuestion.answer);
                 this.syncAll();
             }
+        });
+
+        user.socket.on(HostAction.END_GAME, () => {
+            // TODO quickly end game
         });
 
         user.socket.on(DebugAction.ADVANCE_ROUND, () => {

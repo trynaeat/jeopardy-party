@@ -1,6 +1,7 @@
 <template>
   <div class="flex flex-column flex-fluid" style="align-items: center;">
       <h2>Final Jeopardy!</h2>
+      <GameClock></GameClock>
       <div class="flex flex-fluid" style="align-items: center;">
           <h1>{{ clue.question }}</h1>
       </div>
@@ -22,10 +23,12 @@ import * as _ from 'lodash-es';
 import { mapState } from 'vuex';
 import { Round } from '../interfaces';
 import Players from './Players.vue';
+import GameClock from './GameClock.vue';
 
 export default Vue.extend({
   name: 'FinalJeopardy',
   components: {
+      GameClock,
       Players,
   },
   computed: {
@@ -42,7 +45,8 @@ export default Vue.extend({
   },
   methods: {
       onSubmit() {
-
+          this.$socket.emit('answerFinal', this.answer);
+          this.submitted = true;
       },
   },
 });

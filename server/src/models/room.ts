@@ -1,5 +1,5 @@
 import { User } from './user';
-import { Game } from './game';
+import { Game, UserJoinError } from './game';
 import { Role } from './role';
 import { socketServer } from './socket-server';
 import * as _ from 'lodash';
@@ -46,12 +46,16 @@ export class Room {
     });
     user.socket.on('request_role', (role: Role, username: string) => {
       if (role === Role.PLAYER) {
-        const added = this._game.addPlayer(user, username);
-        if (added) {
-          user.socket.emit('role', Role.PLAYER);
-        } else {
-          user.socket.emit('room_error', 'Players are full!');
+        try {
+          this._game.addPlayer(user, username);
+        } catch (err) {
+          if (err instanceof UserJoinError) {
+            user.socket.emit('room_error', err.message);
+          }
+
+          return;
         }
+        user.socket.emit('role', Role.PLAYER);
       }
       if (role === Role.JUDGE) {
         if (!this._game.judge) {
