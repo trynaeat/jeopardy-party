@@ -43,13 +43,17 @@ export default Vue.extend({
   },
   methods: {
       judgeAnswer(correct: boolean) {
-          this.$socket.emit('answerRuling', this.activePlayer.username, this.activeQuestion.value, correct);
+          this.$socket.emit('judgeAction', 'answerRuling', {
+              username: this.activePlayer.username,
+              value: this.activeQuestion.value,
+              correct: correct,
+            });
       },
       armBuzzers() {
-          this.$socket.emit('armBuzzer');
+          this.$socket.emit('judgeAction', 'armBuzzer');
       },
       skipQuestion() {
-          this.$socket.emit('skipQuestion');
+          this.$socket.emit('judgeAction', 'skipQuestion');
       },
   },
 });

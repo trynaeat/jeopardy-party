@@ -51,7 +51,7 @@ export default Vue.extend({
   },
   methods: {
       onSubmit() {
-          this.$socket.emit('answerFinal', this.response);
+          this.$socket.emit('playerAction', 'answerFinal', { answer: this.response });
           this.submitted = true;
       },
   },

@@ -43,7 +43,7 @@ export default Vue.extend({
   },
   methods: {
       onSubmit() {
-        this.$socket.emit('placeWager', this.wager);
+        this.$socket.emit('playerAction', 'placeWager', { wager: this.wager });
         this.submitted = true;
       },
       validateWager() {

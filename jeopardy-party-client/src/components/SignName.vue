@@ -85,7 +85,7 @@ export default Vue.extend({
         if (this.paths.length > 0) {
             const s = new XMLSerializer();
             const serializedSvg = s.serializeToString(<any>(this.$refs.svgArea));
-            this.$socket.emit('setSignature', serializedSvg);
+            this.$socket.emit('playerAction', 'setSignature', { signature: serializedSvg });
         }
     }
   },

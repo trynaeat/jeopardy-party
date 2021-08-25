@@ -16,6 +16,7 @@ import { takeUntil } from 'rxjs/operators';
 import { validateWager } from '../utils/validators';
 import { DebugAction } from './debug-action';
 import { config } from '../config';
+import { Actions } from './actions';
 
 interface BuzzerPenalty {
     [userId: string]: {
@@ -82,7 +83,8 @@ export class Game {
             { name: 'advanceToBoard', from: 'roundAdvance', to: 'questionBoard' },
             { name: 'advanceToFinal', from: 'roundAdvance', to: 'finalWager' },
             { name: 'finishWager', from: 'finalWager', to: 'finalJeopardy' },
-            { name: 'showAnswers', from: 'finalJeopardy', to: 'showingFinalAnswer' },
+            { name: 'endFinal', from: 'finalJeopardy', to: 'judgingFinal' },
+            { name: 'judgeFinal', from: 'judgingFinal', to: 'showingFinalAnswer' },
             { name: 'endGame', from: 'showingFinalAnswer', to: 'showingWinner' },
             { name: 'debugAdvance', from: 'questionBoard', to: 'roundAdvance' },
         ],
@@ -131,7 +133,10 @@ export class Game {
                 this.gameTimer.startTimer();
             },
             onFinalJeopardy: () => {
+                // Give only judge the answer to the clue
+                socketServer().to(`room_${this._roomId}`).emit('question_answer', null);
                 this.activeQuestion = this.selectQuestion(_.keys(this.board[Round.FINAL_JEOPARDY])[0], 0);
+                this.judge.socket.emit('question_answer', this.activeQuestion.answer);
                 /* set 30 second timer to answer */
                 this.resetGameTimer$.next();
                 this.gameTimer = new Timer(30000, 100);
@@ -142,14 +147,14 @@ export class Game {
                     if (timeRemaining < 1) {
                         this.resetGameTimer$.next();
                         this.gameTimer = null;
-                        this.fsm.showAnswers();
+                        this.fsm.endFinal();
                         this.syncAll();
                     }
                 });
                 this.syncAll();
                 this.gameTimer.startTimer();
             },
-            onShowAnswers: () => {
+            onJudgeFinal: () => {
                 // Emit final answers and wagers to everyone
                 socketServer()
                     .to(`room_${this._roomId}`)
@@ -261,7 +266,7 @@ export class Game {
     public removePlayer(user: User) {
         _.remove(this.players, p => p === user);
         user.socket.leave(`room_${this._roomId}_players`);
-        user.socket.removeAllListeners('playerAction');
+        user.socket.removeAllListeners(Actions.PLAYER_ACTION);
         this.syncAll();
     }
 
@@ -343,41 +348,48 @@ export class Game {
                             sub,
                         };
                     }
-            }
-        });
-        user.socket.on(PlayerAction.SET_SIGNATURE, (signature: string) => {
-            user.signature = signature;
-            // I keep the signatures a separate event from a main game state sync because they can get large
-            socketServer().to(`room_${this._roomId}`).emit('updatePlayer', new SanitizedUser(user));
-        });
-        user.socket.on(PlayerAction.PLACE_WAGER, (wager: number) => {
-            if (this.fsm.is('finalWager') && validateWager(wager, user.winnings)) {
-                user.wager = wager;
-                this.wageredPlayers.push(user);
-                this.wageredPlayers = _.uniq(this.wageredPlayers);
-                if (this.wageredPlayers.length === this.players.length) {
-                    this.resetGameTimer$.next();
-                    this.fsm.finishWager();
-                }
-                this.syncAll();
-            } else {
-                user.socket.emit('room_error', 'Invalid wager.');
-            }
-        });
-        user.socket.on(PlayerAction.ANSWER_FINAL, (answer: string) => {
-            // do nothing if we're not in final jeopardy
-            if (!this.fsm.can('showAnswers')) {
-                return;
-            }
+                    break;
+                case PlayerAction.SET_SIGNATURE:
+                    user.signature = options.signature;
+                    // I keep the signatures a separate event from a main game state sync because they can get large
+                    socketServer().to(`room_${this._roomId}`).emit('updatePlayer', new SanitizedUser(user));
+                    break;
+                case PlayerAction.PLACE_WAGER:
+                    if (this.fsm.is('finalWager') && validateWager(options.wager, user.winnings)) {
+                        user.wager = options.wager;
+                        this.wageredPlayers.push(user);
+                        this.wageredPlayers = _.uniq(this.wageredPlayers);
+                        if (this.wageredPlayers.length === this.players.length) {
+                            this.resetGameTimer$.next();
+                            this.fsm.finishWager();
+                        }
+                        this.syncAll();
+                    } else {
+                        user.socket.emit('room_error', 'Invalid wager.');
+                    }
+                    break;
+                case PlayerAction.ANSWER_FINAL:
+                    // do nothing if we're not in final jeopardy
+                    if (!this.fsm.is('finalJeopardy')) {
+                        return;
+                    }
 
-            user.finalAnswer = answer;
-            user.hasAnswered = true;
-            this.answeredPlayers.push(user);
-            this.syncAll();
-            if (this.answeredPlayers.length === this.players.length) {
-                this.resetGameTimer$.next();
-                this.fsm.showAnswers();
-                this.syncAll();
+                    user.finalAnswer = options.answer;
+                    user.hasAnswered = true;
+                    this.answeredPlayers.push(user);
+                    this.syncAll();
+                    this.judge.socket.emit('finalAnswer', this.players.map(p => ({
+                        id: p.id,
+                        username: p.username,
+                        finalAnswer: p.finalAnswer,
+                        wager: p.wager,
+                    })));
+                    if (this.answeredPlayers.length === this.players.length) {
+                        this.resetGameTimer$.next();
+                        this.fsm.endFinal();
+                        this.syncAll();
+                    }
+                    break;
             }
         });
     }
@@ -395,6 +407,7 @@ export class Game {
     public removeSpectator(user: User) {
         _.remove(this.spectators, p => p === user);
         user.socket.leave(`room_${this._roomId}_spectators`);
+        user.socket.removeAllListeners(Actions.SPECTATOR_ACTION);
         this.syncAll();
     }
 
@@ -408,6 +421,14 @@ export class Game {
         this.syncAll();
     }
 
+    public removeJudge (user: User) {
+        if (user === this.judge) {
+            this.judge.socket.leave(`room_${this._roomId}_judge`);
+            this.judge.socket.removeAllListeners(Actions.JUDGE_ACTION);
+            this.syncAll();
+        }
+    }
+
     public setHost(host: User) {
         this.host = host;
         this.listenToHost(host);
@@ -415,101 +436,115 @@ export class Game {
         this.syncAll();
     }
 
+    public removeHost(user: User) {
+        if (user === this.host) {
+            this.host.socket.leave(`room_${this._roomId}_host`);
+            this.host.socket.removeAllListeners(Actions.HOST_ACTION);
+            this.syncAll();
+        }
+    }
+
     private listenToJudge(user: User) {
-        user.socket.on(JudgeAction.ANSWER_RULING, (username: string, value: number, correct: boolean) => {
-            if (this.fsm.is('playerAnswer')) {
-                this.fsm.judgeAnswer();
-            }
-            if (this.fsm.is('judgingAnswer')) {
-                const user = this.players.find(u => u.username === username);
-                if (!user) return;
-                this.wasCorrect = correct;
-                if (this.buzzerTimer) {
-                    this.buzzerTimer.resetTimer();
-                    this.resetBuzzer$.next();
-                    this.buzzerTimer = null;
-                }
-                if (correct) {
-                    user.winnings += value;
-                    this.fsm.showAnswer();
-                    socketServer().to(`room_${this._roomId}`).emit('question_answer', this.activeQuestion.answer);
-                    this.syncAll();
-                } else {
-                    user.winnings -= value;
-                    if (this.buzzedPlayers.length === this.players.length) {
-                        this.fsm.showAnswer();
-                        socketServer().to(`room_${this._roomId}`).emit('question_answer', this.activeQuestion.answer);
-                        this.syncAll();
-                    } else {
-                        this.fsm.questionFail();
+        user.socket.on(Actions.JUDGE_ACTION, (action: JudgeAction, options: any) => {
+            switch(action) {
+                case JudgeAction.ANSWER_RULING:
+                    if (this.fsm.is('playerAnswer')) {
+                        this.fsm.judgeAnswer();
+                    }
+                    if (this.fsm.is('judgingAnswer')) {
+                        const user = this.players.find(u => u.username === options.username);
+                        if (!user) return;
+                        this.wasCorrect = options.correct;
+                        if (this.buzzerTimer) {
+                            this.buzzerTimer.resetTimer();
+                            this.resetBuzzer$.next();
+                            this.buzzerTimer = null;
+                        }
+                        if (options.correct) {
+                            user.winnings += options.value;
+                            this.fsm.showAnswer();
+                            socketServer().to(`room_${this._roomId}`).emit('question_answer', this.activeQuestion.answer);
+                            this.syncAll();
+                        } else {
+                            user.winnings -= options.value;
+                            if (this.buzzedPlayers.length === this.players.length) {
+                                this.fsm.showAnswer();
+                                socketServer().to(`room_${this._roomId}`).emit('question_answer', this.activeQuestion.answer);
+                                this.syncAll();
+                            } else {
+                                this.fsm.questionFail();
+                                this.syncAll();
+                            }
+                        }
+                    }
+                    break;
+                case JudgeAction.ARM_BUZZER:
+                    if (this.fsm.can('armBuzzers')) {
+                        this.fsm.armBuzzers();
                         this.syncAll();
                     }
-                }
+                    break;
+                case JudgeAction.SKIP_QUESTION:
+                    if (this.fsm.can('skipQuestion')) {
+                        socketServer().to(`room_${this._roomId}`).emit('question_answer', this.activeQuestion.answer);
+                        this.fsm.skipQuestion();
+                        this.syncAll();
+                    }
+                    break;
+                case JudgeAction.RULE_FINAL:
+                    if (!this.fsm.is('judgingFinal')) {
+                        return;
+                    } 
+        
+                    this.players = this.players.map(player => {
+                        if (options.correctPlayers.find((p: string) => p === player.username)) {
+                            player.winnings += player.wager;
+                        } else {
+                            player.winnings -= player.wager;
+                        }
+        
+                        return player;
+                    });
+        
+                    this.fsm.endGame();
+                    this.syncAll();
+                    break;
             }
-        });
-        user.socket.on(JudgeAction.ARM_BUZZER, () => {
-            if (this.fsm.can('armBuzzers')) {
-                this.fsm.armBuzzers();
-                this.syncAll();
-            }
-        });
-        user.socket.on(JudgeAction.SKIP_QUESTION, () => {
-            if (this.fsm.can('skipQuestion')) {
-                socketServer().to(`room_${this._roomId}`).emit('question_answer', this.activeQuestion.answer);
-                this.fsm.skipQuestion();
-                this.syncAll();
-            }
-        });
-        user.socket.on(JudgeAction.RULE_FINAL, (correctPlayers: string[]) => {
-            if (!this.fsm.can('endGame')) {
-                return;
-            } 
-
-            this.players = this.players.map(player => {
-                if (correctPlayers.find(p => p === player.username)) {
-                    player.winnings += player.wager;
-                } else {
-                    player.winnings -= player.wager;
-                }
-
-                return player;
-            });
-
-            this.fsm.endGame();
-            this.syncAll();
         });
     }
 
     private listenToHost(user: User) {
-        user.socket.on(HostAction.START_GAME, () => {
-            if (this.players.length >= 2 && this.fsm.can('startGame')) {
-                this.fsm.startGame();
-                this.syncAll();
-            }
-        });
-        user.socket.on(HostAction.SELECT_QUESTION, (category: string, qNum: number) => {
-            if (this.fsm.can('selectQuestion')) {
-                const selected = this.selectQuestion(category, qNum);
-                if (selected.disabled || selected.answered) {
-                    return;
-                }
-                this.activeQuestion = selected
-                this.activeQuestion.answered = true; // Clear question off board
-                this.fsm.selectQuestion();
-                // Send the judge (and only the judge) the answer
-                this.judge.socket.emit('question_answer', this.activeQuestion.answer);
-                this.syncAll();
-            }
-        });
-
-        user.socket.on(HostAction.END_GAME, () => {
-            // TODO quickly end game
-        });
-
-        user.socket.on(DebugAction.ADVANCE_ROUND, () => {
-            if (config.debug && this.fsm.can('debugAdvance')) {
-                this.fsm.debugAdvance();
-                this.syncAll();
+        user.socket.on(Actions.HOST_ACTION, (action: HostAction | DebugAction, options: any) => {
+            switch(action) {
+                case HostAction.START_GAME:
+                    if (this.players.length >= 2 && this.fsm.can('startGame')) {
+                        this.fsm.startGame();
+                        this.syncAll();
+                    }
+                    break;
+                case HostAction.SELECT_QUESTION:
+                    if (this.fsm.can('selectQuestion')) {
+                        const selected = this.selectQuestion(options.category, options.qNum);
+                        if (selected.disabled || selected.answered) {
+                            return;
+                        }
+                        this.activeQuestion = selected
+                        this.activeQuestion.answered = true; // Clear question off board
+                        this.fsm.selectQuestion();
+                        // Send the judge (and only the judge) the answer
+                        this.judge.socket.emit('question_answer', this.activeQuestion.answer);
+                        this.syncAll();
+                    }
+                    break;
+                case HostAction.END_GAME:
+                    // TODO quickly end game
+                    break;
+                case DebugAction.ADVANCE_ROUND:
+                    if (config.debug && this.fsm.can('debugAdvance')) {
+                        this.fsm.debugAdvance();
+                        this.syncAll();
+                    }
+                    break;
             }
         });
     }

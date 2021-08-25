@@ -3,6 +3,7 @@ import { Game, UserJoinError } from './game';
 import { Role } from './role';
 import { socketServer } from './socket-server';
 import * as _ from 'lodash';
+import { config } from '../config';
 
 export class Room {
   private _id: string;
@@ -24,6 +25,9 @@ export class Room {
   }
 
   public addUser(user: User) {
+    if (config.debug) {
+      console.log(`user ${user.id} joined room ${this._id}`);
+    }
     this.users.push(user);
     user.socket.join(`room_${this._id}`); // Join user to room's Socket.io "Room"
     /* First user to join is the host, subsequent ones default to spectator */
@@ -36,7 +40,19 @@ export class Room {
   }
 
   public removeUser(user: User) {
+    if (config.debug) {
+      console.log(`user ${user.id} left room ${this._id}`);
+    }
     _.remove(this._users, u => u === user);
+    if (this._game) {
+      this._game.removePlayer(user);
+      this._game.removeSpectator(user);
+      this._game.removeHost(user);
+      this._game.removeJudge(user);
+    }
+    user.socket.removeAllListeners('chat');
+    user.socket.removeAllListeners('request_role');
+    user.socket.removeAllListeners('disconnect');
   }
 
   private listenToUser(user: User) {

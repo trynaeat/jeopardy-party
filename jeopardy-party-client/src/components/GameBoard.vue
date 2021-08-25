@@ -54,7 +54,7 @@ export default Vue.extend({
   methods: {
     selectQuestion(category: string, qNum: number) {
       if (this.clickable) {
-        this.$socket.emit('selectQuestion', category, qNum - 1);
+        this.$socket.emit('hostAction', 'selectQuestion', { category, qNum: qNum - 1 });
       }
     },
   },

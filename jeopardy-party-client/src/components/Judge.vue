@@ -30,8 +30,10 @@ import QuestionPrompt from './QuestionPrompt.vue';
 import RoundAdvance from './RoundAdvance.vue';
 import SelectCard from './common/SelectCard.vue';
 import SelectCardOption from './common/SelectCardOption.vue';
+
 import { mapState } from 'vuex';
 import * as _ from 'lodash-es';
+import { User } from '../interfaces';
 
 export default Vue.extend({
   name: 'Judge',
@@ -53,7 +55,7 @@ export default Vue.extend({
     ...mapState({
       currentState: (state: any) => state.currentState,
       players: (state: any) => state.players,
-      playerHash: (state: any) => state.players.map(p => p.username).join(''),
+      playerHash: (state: any) => state.players.map((p: User) => p.username).join(''),
     }),
   },
 });

@@ -47,7 +47,7 @@ export default Vue.extend({
   },
   methods: {
       startGame () {
-          this.$socket.emit('startGame');
+          this.$socket.emit('hostAction', 'startGame');
       },
   },
 });

@@ -30,7 +30,14 @@ export class Lobby {
       console.log(`New User Registered ${user.id}`);
     }
     user.socket.on('game_join', (roomId: string) => {
+      // Leave any other rooms
       user.socket.leaveAll();
+      this.rooms.forEach(r => {
+        if (r.id !== roomId) {
+          r.removeUser(user);
+        }
+      });
+
       const room = this.rooms.find(room => room.id === roomId);
       if (room) {
         return room.addUser(user);
