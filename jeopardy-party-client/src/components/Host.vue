@@ -10,7 +10,7 @@
         <h1>Accepting Wagers...</h1>
       </div>
     </div>
-    <FinalJeopardy v-if="currentState === 'finalJeopardy'"></FinalJeopardy>
+    <FinalJeopardy v-if="currentState === 'finalJeopardy' || currentState === 'judgingFinal'"></FinalJeopardy>
   </div>
 </template>
 

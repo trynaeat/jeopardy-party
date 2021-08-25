@@ -11,6 +11,7 @@
       <AwaitingPlayers v-if="currentState === 'awaitPlayers'"></AwaitingPlayers>
     </template>
     <QuestionPrompt v-if="currentState === 'readQuestion' || currentState === 'playerAnswer' || currentState === 'judgingAnswer'"></QuestionPrompt>
+    <FinalJeopardy v-if="currentState === 'finalJeopardy' || currentState === 'judgingFinal'"></FinalJeopardy>
   </div>
 </template>
 
@@ -20,12 +21,14 @@ import { mapState } from 'vuex';
 import GameBoard from './GameBoard.vue';
 import AwaitingPlayers from './AwaitingPlayers.vue';
 import QuestionPrompt from './QuestionPrompt.vue';
+import FinalJeopardy from './FinalJeopardy.vue';
 import * as _ from 'lodash-es';
 
 export default Vue.extend({
   name: 'Spectator',
   components: {
     GameBoard,
+    FinalJeopardy,
     AwaitingPlayers,
     QuestionPrompt,
   },

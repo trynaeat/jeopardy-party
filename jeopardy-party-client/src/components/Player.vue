@@ -16,7 +16,7 @@
       <Answer v-if="currentState === 'showingAnswer'"></Answer>
       <RoundAdvance v-if="currentState === 'roundAdvance'"></RoundAdvance>
       <Wager v-if="currentState === 'finalWager'"></Wager>
-      <FinalJeopardy v-if="currentState === 'finalJeopardy'"></FinalJeopardy>
+      <FinalJeopardy v-if="currentState === 'finalJeopardy' || currentState === 'judgingFinal'"></FinalJeopardy>
     </div>
     <div>
       <Timer></Timer>
