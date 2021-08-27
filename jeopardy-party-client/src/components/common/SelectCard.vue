@@ -23,7 +23,7 @@ export default Vue.extend({
   render: function(h): VNode {
 	  const children = this.options as Option[];
 	  const options = (children || []).map((child) => {
-		  return h('button', { on: { click: this.handleClick(child) }, class: 'half-margin' }, [child.vnode]);
+		  return h('button', { on: { click: this.handleClick(child) }, class: `half-margin ${child.selected ? 'active' : ''}` }, [child.vnode]);
 	  });
 	  return h('div', { attrs: { class: 'flex flex-center' } }, options);
   },
@@ -54,10 +54,18 @@ export default Vue.extend({
 		  return () => {
               option.selected = !option.selected;
 
-              this.model = (this.options as Option[]).map(o => o.value);
+              this.model = (this.options as Option[])
+                .filter(o => o.selected)
+                .map(o => (o.vnode.componentInstance as any).value);
               this.$emit('input', this.model);
 		  }
 	  },
   },
 });
 </script>
+
+<style scoped lang="scss">
+  .active {
+    box-shadow: 0 0 15px 5px yellow;
+  }
+</style>

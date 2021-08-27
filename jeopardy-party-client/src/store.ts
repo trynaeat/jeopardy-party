@@ -68,10 +68,13 @@ const store: StoreOptions<RootState> = {
     },
     setPlayers(state, players: User[]) {
       // Keep any signatures around so they aren't erased
+      // Keep finalAnswer/wager around too
       players = players.map((p) => {
         const found = _.find(state.players, (oldP) => oldP.username === p.username);
         if (found) {
           p.signature = found.signature;
+          p.finalAnswer = found.finalAnswer || p.finalAnswer;
+          p.wager = found.wager || p.wager;
         }
         return p;
       });

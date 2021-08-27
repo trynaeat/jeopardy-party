@@ -5,6 +5,7 @@ export interface User {
     signature?: string; // SVG signature
     wager?: number;
     finalAnswer?: string;
+    lastWinnings?: number; // winnings/losings due to most recent response
 }
 
 export interface FinalAnswerEvent {

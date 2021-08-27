@@ -11,6 +11,7 @@
       </div>
     </div>
     <FinalJeopardy v-if="currentState === 'finalJeopardy' || currentState === 'judgingFinal'"></FinalJeopardy>
+    <FinalAnswers v-if="currentState === 'showingFinalAnswer'"></FinalAnswers>
   </div>
 </template>
 
@@ -23,6 +24,7 @@ import QuestionPrompt from './QuestionPrompt.vue';
 import Answer from './Answer.vue';
 import RoundAdvance from './RoundAdvance.vue';
 import FinalJeopardy from './FinalJeopardy.vue';
+import FinalAnswers from './FinalAnswers.vue';
 
 export default Vue.extend({
   name: 'Host',
@@ -33,6 +35,7 @@ export default Vue.extend({
       QuestionPrompt,
       RoundAdvance,
       FinalJeopardy,
+      FinalAnswers,
   },
   computed: {
     ...mapState({

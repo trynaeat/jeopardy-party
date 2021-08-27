@@ -9,11 +9,19 @@ export class User {
   private _signature?: string; // User's drawn signature, as an SVG image
   private _finalAnswer?: string; // Answer to final jeopardy
   private _hasAnswered = false; // Whether they've answered final jeopardy
+  private _lastWinnings = 0; // Last winnings/losings due to most recent response
 
   constructor(id: string, socket: Socket, username?: string,) {
     this._id = id;
     this._username = username;
     this._socket = socket;
+  }
+
+  public resetPlayer () {
+    this._winnings = 0;
+    this._wager = 0;
+    this._finalAnswer = null;
+    this._hasAnswered = false;
   }
 
   get id(): string {
@@ -71,6 +79,14 @@ export class User {
   set hasAnswered(ha: boolean) {
     this._hasAnswered = ha;
   }
+
+  get lastWinnings() {
+    return this._lastWinnings;
+  }
+
+  set lastWinnings(w: number) {
+    this._lastWinnings = w;
+  }
 }
 
 export class SanitizedUser {
@@ -78,11 +94,13 @@ export class SanitizedUser {
   public winnings?: number;
   public signature?: string;
   public hasAnswered?: boolean;
+  public lastWinnings?: number;
 
   constructor (user: User) {
     this.username = user.username;
     this.winnings = user.winnings;
     this.signature = user.signature;
     this.hasAnswered = user.hasAnswered;
+    this.lastWinnings = user.lastWinnings;
   }
 }

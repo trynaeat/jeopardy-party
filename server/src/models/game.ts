@@ -28,6 +28,7 @@ interface BuzzerPenalty {
 export enum USER_ERROR_TYPE {
     ROOM_FULL = 'roomFull',
     NAME_TAKEN = 'nameTaken',
+    EMPTY_NAME = 'emptyName',
 };
 export class UserJoinError extends Error {
     private _type: USER_ERROR_TYPE;
@@ -251,7 +252,11 @@ export class Game {
         if (this.players.find(p => p.username === username)) {
             throw new UserJoinError('Name is taken!', USER_ERROR_TYPE.NAME_TAKEN);
         }
+        if (!username) {
+            throw new UserJoinError('Username is empty!', USER_ERROR_TYPE.EMPTY_NAME);
+        }
         user.username = username;
+        user.resetPlayer();
         this.players.push(user);
         user.socket.join(`room_${this._roomId}_players`);
         user.socket.emit('role', Role.PLAYER);
@@ -378,7 +383,7 @@ export class Game {
                     user.hasAnswered = true;
                     this.answeredPlayers.push(user);
                     this.syncAll();
-                    this.judge.socket.emit('finalAnswer', this.players.map(p => ({
+                    this.judge.socket.emit('final_answer', this.players.map(p => ({
                         id: p.id,
                         username: p.username,
                         finalAnswer: p.finalAnswer,
@@ -462,11 +467,13 @@ export class Game {
                         }
                         if (options.correct) {
                             user.winnings += options.value;
+                            user.lastWinnings = options.value;
                             this.fsm.showAnswer();
                             socketServer().to(`room_${this._roomId}`).emit('question_answer', this.activeQuestion.answer);
                             this.syncAll();
                         } else {
                             user.winnings -= options.value;
+                            user.lastWinnings = -options.value;
                             if (this.buzzedPlayers.length === this.players.length) {
                                 this.fsm.showAnswer();
                                 socketServer().to(`room_${this._roomId}`).emit('question_answer', this.activeQuestion.answer);
@@ -498,15 +505,17 @@ export class Game {
         
                     this.players = this.players.map(player => {
                         if (options.correctPlayers.find((p: string) => p === player.username)) {
+                            player.lastWinnings = player.wager;
                             player.winnings += player.wager;
                         } else {
+                            player.lastWinnings = -player.wager;
                             player.winnings -= player.wager;
                         }
         
                         return player;
                     });
         
-                    this.fsm.endGame();
+                    this.fsm.judgeFinal();
                     this.syncAll();
                     break;
             }
