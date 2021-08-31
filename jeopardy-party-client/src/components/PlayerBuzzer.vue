@@ -24,17 +24,21 @@ export default Vue.extend({
     BuzzerButton,
   },
   created() {
-    window.addEventListener('keydown', (e) => {
-      if (e.key == 'Enter') {
-        console.log('Enter hit!');
-        this.$socket.emit('playerAction', 'buzzIn');
-      }
-    });
+    window.addEventListener('keydown', this.onKeydown);
+  },
+  beforeDestroy() {
+    window.removeEventListener('keydown', this.onKeydown);
   },
   methods: {
     onBuzz: function() {
       console.log('Clicked!');
       this.$socket.emit('playerAction', 'buzzIn');
+    },
+    onKeydown: function (e: KeyboardEvent) {
+      if (e.key == 'Enter') {
+        console.log('Enter hit!');
+        this.$socket.emit('playerAction', 'buzzIn');
+      }
     },
   }
 });
