@@ -58,6 +58,7 @@ export class Timer {
     }
 
     public stopTimer() {
+        this.timeRemaining = 0;
         this.stop$.next();
     }
 }

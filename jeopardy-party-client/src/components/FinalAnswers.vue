@@ -5,12 +5,15 @@
             <h3>Answer: </h3>
             <p>{{ answer }}</p>
             <h3>Responses: </h3>
-            <div class="flex" style="align-items: center;">
+            <div class="flex flex-center" style="align-items: center;">
                 <div v-for="(player, i) in players" :key="i" class="half-margin">
                     <h4>Username: {{ player.username }}</h4>
                     <h4>Response: {{ player.finalAnswer}}</h4>
                     <h4>Wager: {{ player.wager || 0 }}</h4>
                 </div>
+            </div>
+            <div v-if="role === 'host'">
+                <button v-on:click="onContinue()">Continue</button>
             </div>
         </div>
       </div>
@@ -32,7 +35,13 @@ export default Vue.extend({
       ...mapState({
           answer: (state: any) => state.answer,
           players: (state: any) => state.players,
+          role: (state: any) => state.role,
       }),
+  },
+  methods: {
+      onContinue: function () {
+          this.$socket.emit('hostAction', 'endGame');
+      },
   },
 });
 </script>

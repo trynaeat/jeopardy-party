@@ -194,6 +194,9 @@ const store: StoreOptions<RootState> = {
           },
         );
         buzzerTimer.startTimer();
+      } else {
+        buzzerTimer = new Timer (0, 0);
+        this.commit('setBuzzerTimer', buzzerTimer);
       }
       // Same for general game timer
       if (gameState.gameTimer) {
@@ -206,6 +209,9 @@ const store: StoreOptions<RootState> = {
           this.commit('setGameTimer', { timeRemaining, timeLimit: gameTimer.timeLimit });
         });
         gameTimer.startTimer();
+      } else {
+        gameTimer = new Timer (0, 0);
+        this.commit('setGameTimer', gameTimer);
       }
 
     },

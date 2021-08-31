@@ -546,6 +546,12 @@ export class Game {
                     }
                     break;
                 case HostAction.END_GAME:
+                    if (this.fsm.can('endGame')) {
+                        this.fsm.endGame();
+                        this.syncAll();
+                    }
+                    break;
+                case HostAction.FORCE_END:
                     // TODO quickly end game
                     break;
                 case DebugAction.ADVANCE_ROUND:

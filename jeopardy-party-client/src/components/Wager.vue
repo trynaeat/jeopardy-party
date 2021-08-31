@@ -1,7 +1,6 @@
 <template>
     <div class="text-center">
         <h3>Place your Final Jeopardy wager!</h3>
-        <GameClock></GameClock>
         <h3 class="base-margin-top">Category: {{ finalCategory }}</h3>
         <div class="flex flex-center">
             <form style="width: 50vw" class="base-margin-top form-inline flex-center" @submit.prevent="onSubmit()" novalidate>
@@ -16,7 +15,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import GameClock from './GameClock.vue';
 import { mapState } from 'vuex';
 import { Round } from '../interfaces';
 import { validateWager } from '../utils/Validators';
@@ -24,9 +22,6 @@ import * as _ from 'lodash-es';
 
 export default Vue.extend({
   name: 'Wager',
-  components: {
-      GameClock,
-  },
   computed: {
     ...mapState({
         finalCategory: (state: any) => _.keys(state.board[Round.FINAL_JEOPARDY])[0],

@@ -2,9 +2,8 @@
   <div class="flex flex-column flex-fluid" style="align-items: center;">
       <h2>Final Jeopardy!</h2>
       <h2 v-if="currentState === 'judgingFinal'">Judging Responses...</h2>
-      <GameClock v-if="currentState === 'finalJeopardy'"></GameClock>
       <div class="flex flex-fluid" style="align-items: center;" v-if="!(role === 'judge' && currentState === 'judgingFinal')">
-          <h1>{{ clue.question }}</h1>
+          <h1 v-html="clue.question"></h1>
       </div>
       <div v-if="role === 'player'" class="flex flex-center">
         <form style="width: 50vw" class="base-margin-top form-inline flex-center" @submit.prevent="onSubmit()" novalidate>
@@ -37,14 +36,12 @@ import * as _ from 'lodash-es';
 import { mapState } from 'vuex';
 import { Round, User } from '../interfaces';
 import Players from './Players.vue';
-import GameClock from './GameClock.vue';
 import SelectCard from './common/SelectCard.vue';
 import SelectCardOption from './common/SelectCardOption.vue';
 
 export default Vue.extend({
   name: 'FinalJeopardy',
   components: {
-      GameClock,
       Players,
       SelectCard,
       SelectCardOption,

@@ -17,6 +17,7 @@
     <div class="side-lights">
       <BoardLights :lit="armed"></BoardLights>
     </div>
+    <GameClock v-if="gameTimer && gameTimer.timeRemaining > 0"></GameClock>
   </div>
 </template>
 
@@ -30,6 +31,7 @@ import Judge from '@/components/Judge.vue';
 import Players from '@/components/Players.vue';
 import BoardLights from '@/components/svg/boardLights/boardLights.vue';
 import Debug from '@/components/Debug.vue';
+import GameClock from '@/components/GameClock.vue';
 
 export default Vue.extend({
   name: 'PlayGame',
@@ -41,6 +43,7 @@ export default Vue.extend({
     Judge,
     Players,
     BoardLights,
+    GameClock,
   },
   mounted: function() {
     console.log('joining...');
@@ -58,6 +61,7 @@ export default Vue.extend({
     ...mapState({
         role: (state: any) => state.role,
         armed: (state: any) => state.currentState === 'buzzersArmed',
+        gameTimer: (state: any) => state.gameTimer,
         debug: (state: any) => state.debug,
     }),
   },

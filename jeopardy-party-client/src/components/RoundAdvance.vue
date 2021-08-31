@@ -9,13 +9,9 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapState } from 'vuex';
-import GameClock from './GameClock.vue';
 
 export default Vue.extend({
   name: 'RoundAdvance',
-  components: {
-      GameClock,
-  },
   computed: {
     ...mapState({
         gameTimer: (state: any) => state.gameTimer,

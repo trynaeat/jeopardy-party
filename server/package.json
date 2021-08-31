@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node ./src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
     "watch-changes": "nodemon --watch 'src/**/*' -e ts,tsx --exec \"ts-node --files ./src/index.ts -d\""
   },
   "author": "Jake Parks",
