@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-column flex-fluid">
-    <div class="flex-fluid">
+    <div class="flex flex-column flex-fluid">
       <div class="menu">
         <button type="button" class="btn btn-primary" data-toggle="modal" @click="showModal = true;">Edit Signature</button>
       </div>
