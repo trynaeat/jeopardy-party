@@ -152,19 +152,19 @@
        rx="81.085533"
        cy="116.08695"
        cx="107.96184" />
+    <ellipse
+      style="fill:url(#linearGradient69330);stroke-width:1.37953;fill-opacity:1;stroke:none"
+      id="path9593"
+      cx="107.16492"
+      :cy="clicked ? 130 : 117.20102"
+      rx="75.865982"
+      ry="48.479382"
+      v-on:mousedown="onClick($event)" />
     <path
        id="path16400"
        style="fill:url(#linearGradient69338);fill-opacity:1;stroke-width:1.065;stroke:none"
        d="m 154.96393,76.031982 c 0,0 24.34834,10.626093 30.95797,29.713508 2.97744,8.59829 7.21149,11.96783 8.23402,22.21614 2.44993,24.55454 -3.94782,54.64069 -6.9743,59.4109 -5.73311,9.03627 -18.46828,18.39041 -28.22639,23.00253 -15.65184,7.39776 -36.3657,10.68933 -53.93179,11.09917 C 85.305539,221.93428 61.71979,217.39065 44.692625,205.64268 31.596353,196.60685 18.49479,186.89192 15.50596,159.232 13.794052,143.38927 16.417618,116.85088 28.558645,98.868217 37.003792,86.359701 55.297763,78.96494 59.335545,76.542286 c 0,0 12.849747,-2.458304 5.750838,0.500214 -5.472544,2.28072 -20.452012,11.16492 -27.534867,22.588521 -6.945875,11.202669 -2.753011,30.818379 0.852533,35.123509 8.650047,10.3284 14.163391,15.09071 28.789474,20.77179 11.439452,4.44332 27.63729,8.36949 37.149517,8.10464 25.25122,-0.70308 39.11907,-1.78134 58.47147,-12.74381 4.08383,-2.31335 22.51345,-21.43793 20.40003,-38.59983 -0.78271,-6.35595 -6.98738,-16.734753 -15.43253,-24.393107 -5.14742,-4.667857 -16.89272,-9.778273 -20.0515,-11.067286 -10.72553,-4.376792 6.50757,-0.468085 7.23342,-0.794945 z"
        sodipodi:nodetypes="ssssssssssssssssssss" />
-    <ellipse
-       style="fill:url(#linearGradient69330);stroke-width:1.37953;fill-opacity:1;stroke:none"
-       id="path9593"
-       cx="107.16492"
-       cy="117.20102"
-       rx="75.865982"
-       ry="48.479382"
-       v-on:click="onClick($event)" />
     <path
        id="path21668-6-2"
        style="fill:#e4c3c5;stroke-width:0.465723;fill-opacity:1;stroke:none"
@@ -175,19 +175,19 @@
        style="fill:url(#linearGradient69217);fill-opacity:1;stroke-width:4.0252;stroke:none"
        inkscape:transform-center-x="0.78571564"
        inkscape:transform-center-y="0.87172069"
-       transform="scale(0.26458333)"
+       :transform="getShadowTransform"
        d="m 372.14894,555.60186 -156.54292,-0.60751 c -13.5011,-1.92873 -36.30501,-11.32136 -36.30501,-11.32136 l -29.3054,-27.48995 -10.28623,-38.40857 c 0,0 -16.69485,-27.95074 31.04527,-31.18151 0,0 18.84619,5.89516 18.84619,13.61008 15.61813,11.12497 35.97315,28.03612 49.91998,39.16109 38.78887,28.23179 87.6894,38.76818 132.62812,56.23773 z"
        sodipodi:nodetypes="ccccccccc"
-       v-on:click="onClick($event)" />
+       v-on:mousedown="onClick($event)" />
     <path
        id="path14422"
        style="fill:url(#linearGradient69322);fill-opacity:1;stroke-width:4.0252;stroke:none;stroke-opacity:1"
        inkscape:transform-center-x="0.81599331"
        inkscape:transform-center-y="-1.2490074"
-       transform="scale(0.26458333)"
+       :transform="getShadowTransform"
        d="m 693.05624,447.46485 c -26.38492,98.44688 -85.5369,166.61742 -255.59373,172.45981 l -37.91236,0.50804 c -20.5731,0 96.45473,-43.21065 96.45473,-43.21065 76.06289,-47.16033 146.33689,-114.74769 177.98563,-199.48922 17.40041,24.82189 27.60369,49.04078 19.06573,69.73202 z"
        sodipodi:nodetypes="cccccc"
-       v-on:click="onClick($event)" />
+       v-on:mousedown="onClick($event)" />
     <path
        id="path21668"
        style="fill:#eae0e1;stroke-width:0.702255;fill-opacity:1;stroke:none"
@@ -261,11 +261,50 @@ export default Vue.extend({
      height: String,
      width: String,
   },
+  mounted () {
+     window.addEventListener('keydown', this.onKeydown);
+     window.addEventListener('keyup', this.onKeyup);
+     document.addEventListener('mouseup', this.clickEnd);
+  },
+  computed: {
+     getShadowTransform () {
+        if (this.clicked) {
+           return 'scale(0.26458333) translate(0 13)';
+        }
+
+        return 'scale(0.26458333)';
+     },
+  },
+  data: function () {
+     return {
+        clicked: false,
+     };
+  },
   methods: {
      onClick(event: MouseEvent) {
+        this.clicked = true;
         this.$emit('click', event);
+     },
+     clickEnd() {
+        this.clicked = false;
+     },
+     onKeydown: function (e: KeyboardEvent) {
+      if (e.key === 'Enter' && !this.clicked) {
+         this.clicked = true;
+         this.$emit('click', e);
+      }
+     },
+     onKeyup: function (e: KeyboardEvent) {
+        if (e.key === 'Enter') {
+           this.clicked = false;
+        }
      }
-  }
+  },
+  beforeDestroy () {
+     window.removeEventListener('keydown', this.onKeydown);
+     window.removeEventListener('keyup', this.onKeyup);
+     document.removeEventListener('mouseup', this.clickEnd);
+  },
 })
 </script>
 

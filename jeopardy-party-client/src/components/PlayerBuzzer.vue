@@ -16,29 +16,16 @@
 <script lang="ts">
 import Vue from 'vue';
 import BuzzerButton from './svg/buzzer/buzzerButton.vue';
-import { mapState } from 'vuex';
 
 export default Vue.extend({
   name: 'PlayerBuzzer',
   components: {
     BuzzerButton,
   },
-  created() {
-    window.addEventListener('keydown', this.onKeydown);
-  },
-  beforeDestroy() {
-    window.removeEventListener('keydown', this.onKeydown);
-  },
   methods: {
     onBuzz: function() {
       console.log('Clicked!');
       this.$socket.emit('playerAction', 'buzzIn');
-    },
-    onKeydown: function (e: KeyboardEvent) {
-      if (e.key == 'Enter') {
-        console.log('Enter hit!');
-        this.$socket.emit('playerAction', 'buzzIn');
-      }
     },
   }
 });

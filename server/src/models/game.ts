@@ -199,8 +199,6 @@ export class Game {
             },
             onSkipQuestion: () => {
                 this.activeQuestion.answered = true;
-                const lastPlayerIdx = _.indexOf(this.players, this.activePlayer);
-                this.playersTurn = this.players[(lastPlayerIdx + 1) % this.players.length];
                 this.activeQuestion = null;
                 this.wasCorrect = false;
                 this.gameTimer = new Timer(3000, 100);
@@ -228,14 +226,12 @@ export class Game {
             onReturnToBoard: () => {
                 if (this.wasCorrect) {
                     this.playersTurn = this.activePlayer; // if the last person to answer got it right, they get to pick next Q
-                } else {
-                    // Else get next player in line
-                    const lastPlayerIdx = _.indexOf(this.players, this.activePlayer);
-                    this.playersTurn = this.players[(lastPlayerIdx + 1) % this.players.length];
                 }
+
                 this.wasCorrect = null;
                 this.activePlayer = null;
                 this.activeQuestion = null;
+                this.syncAll();
             },
         },
     });

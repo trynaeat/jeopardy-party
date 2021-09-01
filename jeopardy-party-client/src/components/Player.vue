@@ -5,14 +5,14 @@
         <button type="button" class="btn btn-primary" data-toggle="modal" @click="showModal = true;">Edit Signature</button>
       </div>
       <h1>Player Name: {{ username }}</h1>
-      <PlayerBuzzer v-if="currentState === 'readQuestion' || currentState === 'buzzersArmed'"></PlayerBuzzer>
+      <h3 v-if="currentState === 'playerAnswer'">Currently Answering: {{ activePlayer ? activePlayer.username : '' }}</h3>
+      <h3 v-if="currentState === 'judgingAnswer'">Waiting on Judge...</h3>
+      <PlayerBuzzer v-if="currentState === 'readQuestion' || currentState === 'buzzersArmed' || currentState ==='judgingAnswer' || currentState === 'playerAnswer'"></PlayerBuzzer>
       <h3 v-if="currentState === 'awaitPlayers'">Waiting on more players...</h3>
       <div v-if="currentState === 'questionBoard'">
           <h3 v-if="playersTurn.username === username">Pick a question!</h3>
           <h3 v-else>Waiting on {{ playersTurn.username }} to pick a question</h3>
       </div>
-      <h3 v-if="currentState === 'playerAnswer'">Currently Answering: {{ activePlayer ? activePlayer.username : '' }}</h3>
-      <h3 v-if="currentState === 'judgingAnswer'">Waiting on Judge...</h3>
       <Answer v-if="currentState === 'showingAnswer'"></Answer>
       <RoundAdvance v-if="currentState === 'roundAdvance'"></RoundAdvance>
       <Wager v-if="currentState === 'finalWager'"></Wager>
