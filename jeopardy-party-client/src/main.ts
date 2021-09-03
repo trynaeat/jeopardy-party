@@ -10,7 +10,7 @@ import router from './router';
 import store from './store';
 Vue.config.productionTip = false;
 
-axios.defaults.baseURL = 'https://localhost:3000';
+axios.defaults.baseURL = 'http://localhost:3000';
 Vue.use(VueAxios, axios);
 Vue.use(new VueSocketIO({
   debug: true,

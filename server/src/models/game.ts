@@ -257,9 +257,6 @@ export class Game {
         user.socket.join(`room_${this._roomId}_players`);
         user.socket.emit('role', Role.PLAYER);
         this.listenToPlayer(user);
-        user.socket.on('disconnect', () => {
-            this.removePlayer(user);
-        });
         this.syncAll(true);
         return true;
     }
@@ -399,9 +396,6 @@ export class Game {
         this.spectators.push(user);
         user.socket.join(`room_${this._roomId}_spectators`);
         user.socket.emit('role', Role.SPECTATOR);
-        user.socket.on('disconnect', () => {
-            this.removeSpectator(user);
-        });
         this.syncAll();
     }
 
@@ -415,15 +409,11 @@ export class Game {
     public setJudge(judge: User) {
         this.judge = judge;
         this.listenToJudge(judge);
-        judge.socket.on('disconnect', () => {
-            this.judge = null;
-            this.syncAll();
-        });
         this.syncAll();
     }
 
     public removeJudge (user: User) {
-        if (user === this.judge) {
+        if (user && user === this.judge) {
             this.judge.socket.leave(`room_${this._roomId}_judge`);
             this.judge.socket.removeAllListeners(Actions.JUDGE_ACTION);
             this.syncAll();
@@ -438,7 +428,7 @@ export class Game {
     }
 
     public removeHost(user: User) {
-        if (user === this.host) {
+        if (user && user === this.host) {
             this.host.socket.leave(`room_${this._roomId}_host`);
             this.host.socket.removeAllListeners(Actions.HOST_ACTION);
             this.syncAll();
@@ -575,8 +565,6 @@ export class Game {
      * @param qNum 
      */
     private selectQuestion (category: string, qNum: number) {
-        console.log(category);
-        console.log(qNum);
         return this.board[this.round][category][qNum];
     }
 
@@ -586,5 +574,15 @@ export class Game {
      */
     private allAnswered (round: Round) {
         return _.every(this.board[this.round], cat => _.every(cat, q => q.answered || q.disabled));
+    }
+
+    /**
+     * Fully teardown game for removal. Either after host kills it, everyone leaves, etc.
+     */
+    public teardown () {
+        this.players.forEach(p => this.removePlayer(p));
+        this.spectators.forEach(s => this.removeSpectator(s));
+        this.removeJudge(this.judge);
+        this.removeHost(this.host);
     }
 }

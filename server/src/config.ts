@@ -8,4 +8,5 @@ export const config = {
   },
   jwtSecret: 'secrettoken',
   debug: false,
+  https: false,
 };
