@@ -18,6 +18,12 @@ import { DebugAction } from './debug-action';
 import { config } from '../config';
 import { Actions } from './actions';
 
+interface IUserMemo {
+    [Role.HOST]: User;
+    [Role.JUDGE]: User;
+    [Role.PLAYER]: User[];
+}
+
 interface BuzzerPenalty {
     [userId: string]: {
         timer: Timer;
@@ -29,6 +35,8 @@ export enum USER_ERROR_TYPE {
     ROOM_FULL = 'roomFull',
     NAME_TAKEN = 'nameTaken',
     EMPTY_NAME = 'emptyName',
+    GAME_STARTED = 'gameStarted',
+    BAD_REJOIN = 'badRejoin',
 };
 export class UserJoinError extends Error {
     private _type: USER_ERROR_TYPE;
@@ -68,6 +76,12 @@ export class Game {
     private spectators: User[] = [];
     private resetBuzzer$ = new Subject();
     private resetGameTimer$ = new Subject();
+    // Saves history of players who have joined to allow rejoins
+    private _userMemo: IUserMemo = {
+        [Role.HOST]: null,
+        [Role.JUDGE]: null,
+        [Role.PLAYER]: [],
+    };
     public fsm = new StateMachine({
         init: 'awaitPlayers',
         transitions: [
@@ -106,7 +120,7 @@ export class Game {
                 /* Anyone with less than 0 bucks is out of the game */
                 _.remove(this.players, p => {
                     if (p.winnings < 0) {
-                        p.socket.emit('role', Role.SPECTATOR);
+                        p.socket.emit('role', { role: Role.SPECTATOR });
                         return true;
                     }
                 });
@@ -140,6 +154,7 @@ export class Game {
                 this.judge.socket.emit('question_answer', this.activeQuestion.answer);
                 /* set 30 second timer to answer */
                 this.resetGameTimer$.next();
+                this.gameTimer.resetTimer();
                 this.gameTimer = new Timer(30000, 100);
                 this.gameTimer.timer$.pipe(
                     takeUntil(this.resetGameTimer$),
@@ -147,6 +162,7 @@ export class Game {
                 .subscribe((timeRemaining: number) => {
                     if (timeRemaining < 1) {
                         this.resetGameTimer$.next();
+                        this.gameTimer.resetTimer();
                         this.gameTimer = null;
                         this.fsm.endFinal();
                         this.syncAll();
@@ -154,6 +170,13 @@ export class Game {
                 });
                 this.syncAll();
                 this.gameTimer.startTimer();
+            },
+            onEndFinal: () => {
+                // Stop final jeopardy timer
+                this.resetGameTimer$.next();
+                this.gameTimer.resetTimer();
+                this.gameTimer = null;
+                this.syncAll();
             },
             onJudgeFinal: () => {
                 // Emit final answers and wagers to everyone
@@ -241,7 +264,10 @@ export class Game {
         this.board = board;
     }
 
-    public addPlayer(user: User, username: string) {
+    public addPlayer(user: User, username: string, rejoin?: boolean) {
+        if (!rejoin && !this.fsm.is('awaitPlayers')) {
+            throw new UserJoinError('Game has started!', USER_ERROR_TYPE.GAME_STARTED);
+        }
         if (this.players.length >= 3) {
             throw new UserJoinError('Players are full!', USER_ERROR_TYPE.ROOM_FULL);
         }
@@ -252,16 +278,50 @@ export class Game {
             throw new UserJoinError('Username is empty!', USER_ERROR_TYPE.EMPTY_NAME);
         }
         user.username = username;
-        user.resetPlayer();
+        if (!rejoin) {
+            user.resetPlayer();
+        }
         this.players.push(user);
         user.socket.join(`room_${this._roomId}_players`);
-        user.socket.emit('role', Role.PLAYER);
+        user.socket.emit('role', { role: Role.PLAYER, uuid: user.uuid, username: user.username });
         this.listenToPlayer(user);
         this.syncAll(true);
         return true;
     }
 
+    /**
+     * Attempt to rejoin the game based on user's uuid
+     * Will rejoin in an existing role if there is one, otherwise will throw error
+     * @param user User
+     */
+    public rejoin(user: User) {
+        if (this._userMemo[Role.HOST] && this._userMemo[Role.HOST].uuid === user.uuid) {
+            this.setHost(user, true);
+            this.removeSpectator(user);
+            return;
+        }
+        if (this._userMemo[Role.JUDGE] && this._userMemo[Role.JUDGE].uuid === user.uuid) {
+            this.setJudge(user, true);
+            this.removeSpectator(user);
+            return;
+        }
+        const foundPlayer = this._userMemo[Role.PLAYER].find(u => u.uuid === user.uuid);
+        if (foundPlayer) {
+            // Sync old player info that was saved
+            user.syncPlayer(foundPlayer);
+            this.addPlayer(user, foundPlayer.username, true);
+            this.removeSpectator(user);
+            return;
+        }
+        throw new UserJoinError('Unable to rejoin, no players found with your ID!', USER_ERROR_TYPE.BAD_REJOIN);
+    }
+
     public removePlayer(user: User) {
+        if (!this.fsm.is('awaitPlayers')) {
+            if (!this._userMemo[Role.PLAYER].find(u => u.uuid === user.uuid)) {
+                this._userMemo[Role.PLAYER].push(user);
+            }
+        }
         _.remove(this.players, p => p === user);
         user.socket.leave(`room_${this._roomId}_players`);
         user.socket.removeAllListeners(Actions.PLAYER_ACTION);
@@ -393,9 +453,12 @@ export class Game {
     }
 
     public addSpectator(user: User) {
+        if (this.spectators.find(s => s.uuid === user.uuid)) {
+            return;
+        }
         this.spectators.push(user);
         user.socket.join(`room_${this._roomId}_spectators`);
-        user.socket.emit('role', Role.SPECTATOR);
+        user.socket.emit('role', { role: Role.SPECTATOR });
         this.syncAll();
     }
 
@@ -406,7 +469,10 @@ export class Game {
         this.syncAll();
     }
 
-    public setJudge(judge: User) {
+    public setJudge(judge: User, rejoin?: boolean) {
+        if (!rejoin && !this.fsm.is('awaitPlayers')) {
+            throw new UserJoinError('Game has started!', USER_ERROR_TYPE.GAME_STARTED);
+        }
         this.judge = judge;
         this.listenToJudge(judge);
         this.syncAll();
@@ -414,23 +480,31 @@ export class Game {
 
     public removeJudge (user: User) {
         if (user && user === this.judge) {
+            if (!this.fsm.is('awaitPlayers')) {
+                this._userMemo[Role.JUDGE] = user;
+            }
             this.judge.socket.leave(`room_${this._roomId}_judge`);
             this.judge.socket.removeAllListeners(Actions.JUDGE_ACTION);
+            this.judge = null;
             this.syncAll();
         }
     }
 
-    public setHost(host: User) {
+    public setHost(host: User, rejoin?: boolean) {
         this.host = host;
         this.listenToHost(host);
-        host.socket.emit('role', Role.HOST);
+        host.socket.emit('role', { role: Role.HOST, uuid: host.uuid });
         this.syncAll();
     }
 
     public removeHost(user: User) {
         if (user && user === this.host) {
+            if (!this.fsm.is('awaitPlayers')) {
+                this._userMemo[Role.HOST] = user;
+            }
             this.host.socket.leave(`room_${this._roomId}_host`);
             this.host.socket.removeAllListeners(Actions.HOST_ACTION);
+            this.host = null;
             this.syncAll();
         }
     }
@@ -557,6 +631,11 @@ export class Game {
     private syncAll(firstUpdate = false) {
         const state = new GameUpdate(this, firstUpdate);
         socketServer().to(`room_${this._roomId}`).emit('sync', state);
+    }
+
+    public syncUser(user: User) {
+        const state = new GameUpdate(this, true);
+        user.socket.emit('sync', state);
     }
 
     /**

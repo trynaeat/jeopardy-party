@@ -117,8 +117,8 @@ const store: StoreOptions<RootState> = {
       }
       state.players = _.cloneDeep(state.players); // Change detect
     },
-    SOCKET_role(state, role: Role) {
-      state.role = role;
+    SOCKET_role(state, data: { role: Role, uuid?: string }) {
+      state.role = data.role;
     },
   },
   actions: {

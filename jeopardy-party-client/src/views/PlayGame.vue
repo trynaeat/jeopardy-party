@@ -32,6 +32,7 @@ import Players from '@/components/Players.vue';
 import BoardLights from '@/components/svg/boardLights/boardLights.vue';
 import Debug from '@/components/Debug.vue';
 import GameClock from '@/components/GameClock.vue';
+import { Role } from '../interfaces';
 
 export default Vue.extend({
   name: 'PlayGame',
@@ -65,6 +66,23 @@ export default Vue.extend({
         debug: (state: any) => state.debug,
     }),
   },
+  // Attempt to rejoin the game if we have a saved user id
+  sockets: {
+    role: function (data: { role: Role, uuid: string, username?: string }) {
+      const savedUuid = localStorage.getItem(this.$route.params.id); // Get uuid if one is saved
+      console.log(savedUuid);
+      if (savedUuid && data.role === Role.SPECTATOR) {
+        this.$socket.emit('rejoin', savedUuid);
+      }
+      if (data.role !== Role.SPECTATOR) {
+        localStorage.setItem(this.$route.params.id, data.uuid);
+      }
+      if (data.role === Role.PLAYER) {
+        const user = { username: data.username };
+        this.$store.commit('setCurrentUser', user);
+      }
+    }
+  }
 });
 </script>
 <style lang="scss">

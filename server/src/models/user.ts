@@ -2,6 +2,7 @@ import { Socket } from 'socket.io';
 
 export class User {
   private _id: string; // Unique ID for user, taken from Socket id
+  private _uuid: string; // socket-independent unique ID for user. This persists a user even if they disconnect
   private _username?: string; // User's screen name
   private _socket: Socket; // Socket.io socket associated with user
   private _winnings = 0; // If they're a player, their money total
@@ -11,8 +12,8 @@ export class User {
   private _hasAnswered = false; // Whether they've answered final jeopardy
   private _lastWinnings = 0; // Last winnings/losings due to most recent response
 
-  constructor(id: string, socket: Socket, username?: string,) {
-    this._id = id;
+  constructor(uuid: string, socket: Socket, username?: string,) {
+    this._uuid = uuid;
     this._username = username;
     this._socket = socket;
   }
@@ -20,12 +21,29 @@ export class User {
   public resetPlayer () {
     this._winnings = 0;
     this._wager = 0;
+    this._lastWinnings = 0;
     this._finalAnswer = null;
     this._hasAnswered = false;
   }
 
+  syncPlayer (user: User) {
+    this._winnings = user.winnings;
+    this._wager = user.wager;
+    this._lastWinnings = user.lastWinnings;
+    this._finalAnswer = user.finalAnswer;
+    this._hasAnswered = user.hasAnswered;
+  }
+
   get id(): string {
-    return this._id;
+    return this._socket.id;
+  }
+
+  get uuid() : string {
+    return this._uuid;
+  }
+
+  set uuid(id: string) {
+    this._uuid = id;
   }
 
   get username(): string {

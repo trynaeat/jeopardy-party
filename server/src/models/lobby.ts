@@ -16,6 +16,10 @@ export class Lobby {
   }
 
   public addUser(user: User) {
+    // Do nothing if they already are a member
+    if (this._users.find(u => u.id === user.id)) {
+      return;
+    }
     this._users.push(user);
     user.socket.join('lobby'); // Join user to overall lobby subject with everyone else
     this.listenToUser(user);
@@ -31,7 +35,6 @@ export class Lobby {
     }
     user.socket.on('game_join', (roomId: string) => {
       // Leave any other rooms
-      user.socket.leaveAll();
       this.rooms.forEach(r => {
         if (r.id !== roomId) {
           r.removeUser(user);
@@ -40,7 +43,8 @@ export class Lobby {
 
       const room = this.rooms.find(room => room.id === roomId);
       if (room) {
-        return room.addUser(user);
+        room.addUser(user);
+        return;
       }
       console.log('error joining room');
       user.socket.emit('room_error', 'Attempted to join an invalid room.');

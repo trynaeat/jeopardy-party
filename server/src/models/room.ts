@@ -25,18 +25,27 @@ export class Room {
   }
 
   public addUser(user: User) {
+    // Do nothing if user is already a member, just sync them back up
+    if (this._users.find(u => u.id === user.id)) {
+      this._game.syncUser(user);
+      return;
+    }
     if (config.debug) {
       console.log(`user ${user.id} joined room ${this._id}`);
     }
     this.users.push(user);
     user.socket.join(`room_${this._id}`); // Join user to room's Socket.io "Room"
     /* First user to join is the host, subsequent ones default to spectator */
+    let isHost = false;
     if (!this._game.host) {
       this._game.setHost(user);
+      isHost = true;
     } else {
       this._game.addSpectator(user);
     }
     this.listenToUser(user);
+
+    return isHost;
   }
 
   public removeUser(user: User) {
@@ -50,6 +59,7 @@ export class Room {
       this._game.removeHost(user);
       this._game.removeJudge(user);
     }
+    user.socket.leave(`room_${this._id}`);
     user.socket.removeAllListeners('chat');
     user.socket.removeAllListeners('request_role');
     user.socket.removeAllListeners('disconnect');
@@ -71,14 +81,33 @@ export class Room {
 
           return;
         }
-        user.socket.emit('role', Role.PLAYER);
+        user.socket.emit('role', { role: Role.PLAYER, uuid: user.uuid, username });
       }
       if (role === Role.JUDGE) {
-        if (!this._game.judge) {
-          this._game.setJudge(user);
-          user.socket.emit('role', Role.JUDGE);
-        } else {
-          user.socket.emit('room_error', 'Judge is taken!');
+        try {
+          if (!this._game.judge) {
+            this._game.setJudge(user);
+            user.socket.emit('role', { role: Role.JUDGE, uuid: user.uuid });
+          } else {
+            user.socket.emit('room_error', 'Judge is taken!');
+          }
+        } catch (err) {
+          if (err instanceof UserJoinError) {
+            user.socket.emit('room_error', err.message);
+          }
+        }
+      }
+      if (role === Role.SPECTATOR) {
+        this._game.addSpectator(user);
+      }
+    });
+    user.socket.on('rejoin', (uuid: string) => {
+      user.uuid = uuid;
+      try {
+        this._game.rejoin(user);
+      } catch (err) {
+        if (err instanceof UserJoinError) {
+          user.socket.emit('room_error', err.message);
         }
       }
     });

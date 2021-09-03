@@ -3,7 +3,6 @@ import * as bodyParser from 'koa-bodyparser';
 import * as Router from 'koa-router';
 import * as cors from '@koa/cors';
 import { config } from './config';
-import { initialize } from './auth/auth';
 import { router as gameRoutes } from './routes/game';
 import * as https from 'https';
 import * as http from 'http';
@@ -49,7 +48,6 @@ router.get('/*', ctx => {
 
 app.use(cors());
 app.use(bodyParser());
-app.use(initialize());
 
 app.use(gameRoutes.routes())
   .use(router.routes())
