@@ -3,15 +3,17 @@
       <h2>Final Jeopardy!</h2>
       <h2 v-if="currentState === 'judgingFinal'">Judging Responses...</h2>
       <div class="flex flex-fluid" style="align-items: center;" v-if="!(role === 'judge' && currentState === 'judgingFinal')">
-          <h1 v-html="clue.question"></h1>
-      </div>
-      <div v-if="role === 'player'" class="flex flex-center">
-        <form style="width: 50vw" class="base-margin-top form-inline flex-center" @submit.prevent="onSubmit()" novalidate>
-            <div class="form-group">
-                <input class="form-control" v-model="response" placeholder="Enter your solution..." />
-                <button class="base-margin-left" type="submit" :disabled="submitted">Submit</button>
-            </div>
-        </form>
+          <div>
+             <h1 v-html="clue.question"></h1>
+             <div v-if="role === 'player'" class="flex flex-center">
+                <form style="width: 50vw" class="base-margin-top form-inline flex-center" @submit.prevent="onSubmit()" novalidate>
+                    <div class="form-group">
+                        <input class="form-control" v-model="response" placeholder="Enter your solution..." />
+                        <button class="base-margin-left" type="submit" :disabled="submitted">Submit</button>
+                    </div>
+                </form>
+             </div>
+          </div>
       </div>
       <div class="base-margin-top" v-if="role === 'judge' && currentState === 'judgingFinal'">
             <div><p class="answer">Answer: {{ answer }}</p></div>

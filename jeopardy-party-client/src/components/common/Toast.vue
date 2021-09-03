@@ -4,7 +4,7 @@
             <div v-for="toast in toasts" :key="toast.id">
                 <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="toast-header">
-                    <img class="rounded mr-2" alt="...">
+                    <img class="rounded mr-2" src="favicon.ico" alt="...">
                     <strong class="mr-auto">{{ toast.title }}</strong>
                     <small class="text-muted">{{ toast.createdAt }}</small>
                     <button type="button"
