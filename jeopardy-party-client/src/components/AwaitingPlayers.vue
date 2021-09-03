@@ -4,6 +4,7 @@
             <h2 v-if="players.length < 3">Awaiting Players...</h2>
             <h2 v-else-if="!judge">Awaiting Judge...</h2>
             <h2 v-else>Awaiting Host...</h2>
+            <h1>Game Code: {{ gameId }}</h1>
         </div>
         <div slot="modal-body">
             <div v-if="role === 'spectator'">
@@ -44,6 +45,9 @@ export default Vue.extend({
           players: (state: any) => state.players,
           judge: (state: any) => state.judge,
       }),
+      gameId: function () {
+          return this.$route.params.id;
+      }
   },
   methods: {
       startGame () {

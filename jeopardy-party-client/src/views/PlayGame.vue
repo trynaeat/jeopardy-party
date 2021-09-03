@@ -70,7 +70,6 @@ export default Vue.extend({
   sockets: {
     role: function (data: { role: Role, uuid: string, username?: string }) {
       const savedUuid = localStorage.getItem(this.$route.params.id); // Get uuid if one is saved
-      console.log(savedUuid);
       if (savedUuid && data.role === Role.SPECTATOR) {
         this.$socket.emit('rejoin', savedUuid);
       }
