@@ -1,5 +1,5 @@
 <template>
-  <div class="main-content">
+  <div class="main-content flex">
     <IconPodium :height="'190px'" :width="'150px'"></IconPodium>
     <IconPlayerPodium :height="'200px'" :width="'150px'" :player="players[0]" :active="players[0] && playersTurn.username === players[0].username"></IconPlayerPodium>
     <IconPodium :height="'190px'" :width="'150px'"></IconPodium>

@@ -18,20 +18,15 @@
                 </div>
             </div>
       </div>
-      <Players v-if="role === 'host'"></Players>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { mapState } from 'vuex';
-import Players from './Players.vue';
 
 export default Vue.extend({
   name: 'QuestionPrompt',
-  components: {
-      Players,
-  },
   computed: {
       ...mapState({
           activeQuestion: (state: any) => state.activeQuestion,

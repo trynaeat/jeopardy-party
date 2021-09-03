@@ -9,7 +9,6 @@
             </div>
           </div>
       </div>
-      <Players v-if="role === 'host'"></Players>
   </div>
 </template>
 
@@ -17,13 +16,9 @@
 import Vue from 'vue';
 import { mapState } from 'vuex';
 import { User } from '../interfaces';
-import Players from './Players.vue';
 
 export default Vue.extend({
   name: 'ShowWinner',
-  components: {
-      Players,
-  },
   computed: {
       ...mapState({
           role: (state: any) => state.role,

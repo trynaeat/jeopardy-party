@@ -26,7 +26,6 @@
             </SelectCard>
             <button v-on:click="onRuleFinal()">Submit</button>
       </div>
-      <Players v-if="role === 'host'"></Players>
   </div>
 </template>
 
@@ -35,14 +34,12 @@ import Vue from 'vue';
 import * as _ from 'lodash-es';
 import { mapState } from 'vuex';
 import { Round, User } from '../interfaces';
-import Players from './Players.vue';
 import SelectCard from './common/SelectCard.vue';
 import SelectCardOption from './common/SelectCardOption.vue';
 
 export default Vue.extend({
   name: 'FinalJeopardy',
   components: {
-      Players,
       SelectCard,
       SelectCardOption,
   },

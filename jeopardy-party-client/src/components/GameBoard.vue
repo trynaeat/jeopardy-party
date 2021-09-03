@@ -18,9 +18,6 @@
             </div>
         </div>
     </div>
-    <div class="base-margin-top">
-      <Players></Players>
-    </div>
   </div>
 </template>
 
@@ -29,7 +26,6 @@ import Vue from 'vue';
 import { mapState } from 'vuex';
 import * as _ from 'lodash-es';
 import Card from './Card.vue';
-import Players from './Players.vue';
 
 export default Vue.extend({
   name: 'GameBoard',
@@ -38,7 +34,6 @@ export default Vue.extend({
   },
   components: {
       Card,
-      Players,
   },
   computed: {
       ...mapState({

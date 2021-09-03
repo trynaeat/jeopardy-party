@@ -17,20 +17,15 @@
             </div>
         </div>
       </div>
-      <Players></Players>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { mapState } from 'vuex';
-import Players from './Players.vue';
 
 export default Vue.extend({
   name: 'FinalAnswers',
-  components: {
-      Players,
-  },
   computed: {
       ...mapState({
           answer: (state: any) => state.answer,

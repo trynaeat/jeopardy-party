@@ -1,18 +1,23 @@
 <template>
   <div class="flex flex-fluid">
-    <AwaitingPlayers v-if="currentState === 'awaitPlayers'"></AwaitingPlayers>
-    <Answer v-if="currentState === 'showingAnswer'"></Answer>
-    <GameBoard :clickable="true" v-if="currentState === 'questionBoard' || currentState === 'awaitPlayers'"></GameBoard>
-    <QuestionPrompt v-if="currentState === 'readQuestion' || currentState === 'playerAnswer' || currentState === 'judgingAnswer' || currentState === 'buzzersArmed'"></QuestionPrompt>
-    <RoundAdvance v-if="currentState === 'roundAdvance'"></RoundAdvance>
-    <div v-if="currentState === 'finalWager'" class="flex flex-column flex-fluid" style="align-items: center;">
-      <div class="flex flex-fluid" style="align-items: center;">
-        <h1>Accepting Wagers...</h1>
+    <div class="container-fluid">
+      <AwaitingPlayers v-if="currentState === 'awaitPlayers'"></AwaitingPlayers>
+      <Answer v-if="currentState === 'showingAnswer'"></Answer>
+      <GameBoard :clickable="true" v-if="currentState === 'questionBoard' || currentState === 'awaitPlayers'"></GameBoard>
+      <QuestionPrompt v-if="currentState === 'readQuestion' || currentState === 'playerAnswer' || currentState === 'judgingAnswer' || currentState === 'buzzersArmed'"></QuestionPrompt>
+      <RoundAdvance v-if="currentState === 'roundAdvance'"></RoundAdvance>
+      <div v-if="currentState === 'finalWager'" class="flex flex-column flex-fluid" style="align-items: center;">
+        <div class="flex flex-fluid" style="align-items: center;">
+          <h1>Accepting Wagers...</h1>
+        </div>
       </div>
+      <FinalJeopardy v-if="currentState === 'finalJeopardy' || currentState === 'judgingFinal'"></FinalJeopardy>
+      <FinalAnswers v-if="currentState === 'showingFinalAnswer'"></FinalAnswers>
+      <ShowWinner v-if="currentState === 'showingWinner'"></ShowWinner>
     </div>
-    <FinalJeopardy v-if="currentState === 'finalJeopardy' || currentState === 'judgingFinal'"></FinalJeopardy>
-    <FinalAnswers v-if="currentState === 'showingFinalAnswer'"></FinalAnswers>
-    <ShowWinner v-if="currentState === 'showingWinner'"></ShowWinner>
+    <div class="flex flex-fluid flex-center base-margin-top">
+      <Players></Players>
+    </div>
   </div>
 </template>
 
@@ -27,6 +32,7 @@ import RoundAdvance from './RoundAdvance.vue';
 import FinalJeopardy from './FinalJeopardy.vue';
 import FinalAnswers from './FinalAnswers.vue';
 import ShowWinner from './ShowWinner.vue';
+import Players from './Players.vue';
 
 export default Vue.extend({
   name: 'Host',
@@ -38,6 +44,7 @@ export default Vue.extend({
       RoundAdvance,
       FinalJeopardy,
       FinalAnswers,
+      Players,
       ShowWinner,
   },
   computed: {
