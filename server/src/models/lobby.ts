@@ -31,6 +31,10 @@ export class Lobby {
     this._rooms.push(room);
   }
 
+  public removeRoom(room: Room) {
+    this._rooms = this._rooms.filter(r => r.id !== room.id);
+  }
+
   private listenToUser(user: User) {
     this._logger.debug(`New User Registered ${user.id}`);
     user.socket.on('game_join', (roomId: string) => {

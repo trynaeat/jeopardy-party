@@ -2,14 +2,22 @@ import { User } from './user';
 import { Game, UserJoinError } from './game';
 import { Role } from './role';
 import { socketServer } from './socket-server';
-import * as _ from 'lodash';
 import { Logger } from '../utils/logger';
+import { Subject } from 'rxjs';
 
+const roomLifetime = 1000 * 60 * 45; // 45 mins
 export class Room {
   private _logger = Logger.getLogger();
   private _id: string;
   private _users: User[];
   private _game: Game;
+  /** Emit to teardown and remove the room */
+  private _destroy$ = new Subject();
+
+
+  get destroy$() {
+    return this._destroy$.asObservable();
+  }
 
   get id(): string {
     return this._id;
@@ -23,6 +31,18 @@ export class Room {
     this._id = id;
     this._users = [];
     this._game = game;
+
+    setTimeout(() => {
+      this._destroy$.next();
+    }, roomLifetime);
+  }
+
+  public teardown () {
+    this._logger.debug(`Tearing down room ${this._id}`);
+    socketServer().to(`room_${this._id}`).emit('room_error', 'Room session closed');
+    this._game.teardown();
+    this._users.forEach(u => this.removeUser(u));
+    this._game = null;
   }
 
   public addUser(user: User) {
@@ -32,7 +52,7 @@ export class Room {
       return;
     }
     this._logger.debug(`user ${user.id} joined room ${this._id}`);
-    this.users.push(user);
+    this._users.push(user);
     user.socket.join(`room_${this._id}`); // Join user to room's Socket.io "Room"
     /* First user to join is the host, subsequent ones default to spectator */
     let isHost = false;
@@ -49,7 +69,12 @@ export class Room {
 
   public removeUser(user: User) {
     this._logger.debug(`user ${user.id} left room ${this._id}`);
-    _.remove(this._users, u => u === user);
+    // Game's over and host left, kill the room
+    if (this._game.isFinished && this._game.host && this._game.host === user) {
+      this._destroy$.next();
+      return;
+    }
+    this._users = this._users.filter(u => u !== user);
     if (this._game) {
       this._game.removePlayer(user);
       this._game.removeSpectator(user);
@@ -59,6 +84,7 @@ export class Room {
     user.socket.leave(`room_${this._id}`);
     user.socket.removeAllListeners('chat');
     user.socket.removeAllListeners('request_role');
+    user.socket.removeAllListeners('rejoin');
     user.socket.removeAllListeners('disconnect');
   }
 

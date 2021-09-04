@@ -59,12 +59,16 @@ app.use(gameRoutes.routes())
   .use(router.allowedMethods());
 
 
-if (config.https) {
-  https.createServer(httpsOptions, app.callback())
-    .listen(PORT, HOSTNAME);
-} else {
-  http.createServer(app.callback())
-    .listen(PORT, HOSTNAME);
+try {
+  if (config.https) {
+    https.createServer(httpsOptions, app.callback())
+      .listen(PORT, HOSTNAME);
+  } else {
+    http.createServer(app.callback())
+      .listen(PORT, HOSTNAME);
+  }
+} catch (err) {
+  logger.error('Http server error', err);
 }
 
 const lobby = new Lobby();
@@ -72,7 +76,11 @@ app.context.lobby = lobby;
 const db = new Pool(config.db);
 logger.info('DB Connected');
 app.context.db = db;
-socketInitialize(lobby);
+try {
+  socketInitialize(lobby);
+} catch (err) {
+  logger.error('Socket server error', err);
+}
 
 
 logger.info(`Server listening on port ${PORT}`);

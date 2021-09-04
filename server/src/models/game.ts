@@ -664,4 +664,8 @@ export class Game {
         this.removeJudge(this.judge);
         this.removeHost(this.host);
     }
+
+    public get isFinished () {
+        return this.fsm.is('showingWinner');
+    }
 }

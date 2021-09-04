@@ -12,6 +12,12 @@ router.post('/game', async ctx => {
   const showNum = await GameUtils.getRandomShowNum(ctx.db);
   const board = await GameUtils.getShowBoard(ctx.db, showNum);
   const room = new Room(id, new Game(id, board));
+  // Listen for room lifetime to end, then destroy it
+  const subscription = room.destroy$.subscribe(() => {
+    subscription.unsubscribe();
+    room.teardown();
+    (<Lobby>ctx.lobby).removeRoom(room);
+  });
   (<Lobby>ctx.lobby).addRoom(room);
   ctx.body = { roomId: id };
   ctx.status = 200;
