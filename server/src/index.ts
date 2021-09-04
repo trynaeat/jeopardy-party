@@ -10,22 +10,27 @@ import * as fs from 'fs';
 import { Lobby, socketInitialize } from './models';
 import { Pool } from 'pg';
 import { hideBin } from 'yargs/helpers';
-import yargs, { conflicts } from 'yargs';
+import yargs from 'yargs';
+import { Logger } from './utils/logger';
+import { LogLevel } from 'bunyan';
 
 const argv = yargs(hideBin(process.argv))
   .options(
     {
-      d: { type: 'boolean', default: false },
+      l: { type: 'string', alias: 'logLevel', default: 'INFO' },
       https: { type: 'boolean', default: false },
+      d: { type: 'boolean', alias: 'debug', default: false },
     },
   )
   .parseSync();
 
-config.debug = argv.d;
+config.logLevel = argv.l as LogLevel;
 config.https = argv.https;
-if (config.debug) {
-  console.log('Debug mode on');
-}
+config.debug = argv.d;
+
+const logger = Logger.init({ name: 'baseLogger', level: config.logLevel });
+
+logger.info('Log level: ', logger.level());
 
 
 const httpsOptions = {
@@ -65,9 +70,9 @@ if (config.https) {
 const lobby = new Lobby();
 app.context.lobby = lobby;
 const db = new Pool(config.db);
-console.log('DB Connected');
+logger.info('DB Connected');
 app.context.db = db;
 socketInitialize(lobby);
 
 
-console.log(`Server listening on port ${PORT}`);
+logger.info(`Server listening on port ${PORT}`);

@@ -1,8 +1,10 @@
 import { config } from '../config';
 import { Room } from './room';
 import { User } from './user';
+import { Logger } from '../utils/logger';
 
 export class Lobby {
+  private _logger = Logger.getLogger();
   private _users: User[];
   private _rooms: Room[];
 
@@ -30,9 +32,7 @@ export class Lobby {
   }
 
   private listenToUser(user: User) {
-    if (config.debug) {
-      console.log(`New User Registered ${user.id}`);
-    }
+    this._logger.debug(`New User Registered ${user.id}`);
     user.socket.on('game_join', (roomId: string) => {
       // Leave any other rooms
       this.rooms.forEach(r => {
@@ -46,7 +46,7 @@ export class Lobby {
         room.addUser(user);
         return;
       }
-      console.log('error joining room');
+      this._logger.error('error joining room');
       user.socket.emit('room_error', 'Attempted to join an invalid room.');
     });
   }

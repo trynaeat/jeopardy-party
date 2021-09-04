@@ -1,3 +1,5 @@
+import { LogLevel } from "bunyan";
+
 export const config = {
   db: {
     user: 'jeopardy',
@@ -7,6 +9,7 @@ export const config = {
     port: 5432,
   },
   jwtSecret: 'secrettoken',
+  logLevel: 'INFO' as LogLevel,
   debug: false,
   https: false,
 };
