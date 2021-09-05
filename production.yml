@@ -1,0 +1,22 @@
+version: '3'
+services:
+    client:
+      build:
+        context: ./jeopardy-party-client
+        dockerfile: .docker/prod.dockerfile
+      image: jeopardy-client
+      container_name: jeopardy-client
+      ports:
+        - "80:80"
+      restart: on-failure
+    server:
+      build:
+        context: ./server
+        dockerfile: .docker/prod.dockerfile
+      container_name: server
+      ports:
+        - "3000:3000"
+        - "3001:3001"
+      restart: on-failure
+    postgres:
+      restart: on-failure
