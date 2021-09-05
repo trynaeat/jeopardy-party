@@ -32,15 +32,6 @@ const logger = Logger.init({ name: 'baseLogger', level: config.logLevel });
 
 logger.info('Log level: ', logger.level());
 
-
-const httpsOptions = {
-  key: fs.readFileSync(`${__dirname}/../ssl/server.key`),
-  cert: fs.readFileSync(`${__dirname}/../ssl/server.crt`),
-  ca: fs.readFileSync(`${__dirname}/../ssl/rootCA.crt`),
-  requestCert: true,
-  rejectUnauthorized: false
-};
-
 const app = new Koa();
 const router = new Router();
 
@@ -61,6 +52,14 @@ app.use(gameRoutes.routes())
 
 try {
   if (config.https) {
+    const httpsOptions = {
+      key: fs.readFileSync(`${__dirname}/../ssl/server.key`),
+      cert: fs.readFileSync(`${__dirname}/../ssl/server.crt`),
+      ca: fs.readFileSync(`${__dirname}/../ssl/rootCA.crt`),
+      requestCert: true,
+      rejectUnauthorized: false
+    };
+
     https.createServer(httpsOptions, app.callback())
       .listen(PORT, HOSTNAME);
   } else {
