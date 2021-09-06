@@ -1,17 +1,32 @@
 import * as Router from 'koa-router';
 import * as randomstring from 'randomstring';
-import { Game, GameBoard, Lobby, Question, Room, Round } from '../models';
+import { Game, Lobby, Room } from '../models';
 import { GameUtils } from '../utils';
-import { Pool } from 'pg';
 import * as _ from 'lodash';
+import { Logger } from '../utils/logger';
+import { createBot } from '../models/user';
 
 export const router = new Router();
 
 router.post('/game', async ctx => {
+  const logger = Logger.getLogger();
+  const online = ctx.request.body && ctx.request.body.online;
   const id = randomstring.generate(7);
   const showNum = await GameUtils.getRandomShowNum(ctx.db);
   const board = await GameUtils.getShowBoard(ctx.db, showNum);
-  const room = new Room(id, new Game(id, board));
+  const game = new Game({
+    roomId: id,
+    gameBoard: board,
+    isOnline: online,
+  });
+  const room = new Room(id, game);
+  if (online) {
+    logger.debug(`New online game room ${id}`);
+    const judgeBot = await createBot(<Lobby>ctx.lobby);
+    game.setJudge(judgeBot);
+  } else {
+    logger.debug(`New local game room ${id}`);
+  }
   // Listen for room lifetime to end, then destroy it
   const subscription = room.destroy$.subscribe(() => {
     subscription.unsubscribe();

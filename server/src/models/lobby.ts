@@ -1,6 +1,6 @@
 import { config } from '../config';
 import { Room } from './room';
-import { User } from './user';
+import { User, VirtualUser } from './user';
 import { Logger } from '../utils/logger';
 
 export class Lobby {
@@ -25,6 +25,17 @@ export class Lobby {
     this._users.push(user);
     user.socket.join('lobby'); // Join user to overall lobby subject with everyone else
     this.listenToUser(user);
+  }
+
+  public removeUser(user: User) {
+    this._users = this._users.filter(u => u !== user);
+    user.socket.leave('lobby');
+    user.socket.removeAllListeners('game_join');
+    this._logger.debug(`User ${user.id} disconnected from Lobby`);
+  }
+
+  public getUser(id: string) {
+    return this._users.find(u => u.id === id);
   }
 
   public addRoom(room: Room) {
@@ -52,6 +63,10 @@ export class Lobby {
       }
       this._logger.error('error joining room');
       user.socket.emit('room_error', 'Attempted to join an invalid room.');
+    });
+
+    user.socket.on('disconnect', () => {
+      this.removeUser(user);
     });
   }
 }

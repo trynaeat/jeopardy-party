@@ -1,18 +1,21 @@
 import { Socket } from 'socket.io';
+import * as io from 'socket.io-client';
+import { Lobby } from '.';
+import { IBotBehavior } from './bot-behavior';
 
 export class User {
-  private _id: string; // Unique ID for user, taken from Socket id
   private _uuid: string; // socket-independent unique ID for user. This persists a user even if they disconnect
   private _username?: string; // User's screen name
-  private _socket: Socket; // Socket.io socket associated with user
+  protected _socket: Socket; // Socket.io socket associated with user
   private _winnings = 0; // If they're a player, their money total
   private _wager?: number; // Final jeopardy wager
   private _signature?: string; // User's drawn signature, as an SVG image
   private _finalAnswer?: string; // Answer to final jeopardy
   private _hasAnswered = false; // Whether they've answered final jeopardy
   private _lastWinnings = 0; // Last winnings/losings due to most recent response
+  protected _isBot = false;
 
-  constructor(uuid: string, socket: Socket, username?: string,) {
+  constructor(uuid: string, socket?: Socket, username?: string,) {
     this._uuid = uuid;
     this._username = username;
     this._socket = socket;
@@ -34,12 +37,19 @@ export class User {
     this._hasAnswered = user.hasAnswered;
   }
 
+  /**
+   * Get socket.io id
+   */
   get id(): string {
     return this._socket.id;
   }
 
   get uuid() : string {
     return this._uuid;
+  }
+
+  get isBot () {
+    return this._isBot;
   }
 
   set uuid(id: string) {
@@ -121,4 +131,42 @@ export class SanitizedUser {
     this.hasAnswered = user.hasAnswered;
     this.lastWinnings = user.lastWinnings;
   }
+}
+
+export class VirtualUser extends User {
+  private _behavior: IBotBehavior;
+  private _clientSocket: SocketIOClient.Socket;
+
+  constructor(uuid: string, socket: Socket) {
+    super(uuid, socket);
+    this._isBot = true;
+  }
+
+  public connect () {
+    this._behavior.connect();
+  }
+
+  public disconnect () {
+    this._behavior.disconnect();
+  }
+
+  public set clientSocket (socket: SocketIOClient.Socket) {
+    this._clientSocket = socket;
+  }
+}
+
+export function createBot (lobby: Lobby): Promise<VirtualUser> {
+  return new Promise((resolve, reject) => {
+    const clientSocket = io('http://localhost:3001/bots');
+    clientSocket.on('bot_initialized', (id: string) => {
+      const user = lobby.getUser(id) as VirtualUser;
+      if (!user) {
+        reject('Bot not found after initialization');
+        return;
+      }
+      user.clientSocket = clientSocket;
+      user.username = id;
+      resolve(user);
+    });
+  })
 }

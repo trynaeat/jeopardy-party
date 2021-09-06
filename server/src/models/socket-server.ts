@@ -5,7 +5,7 @@ import * as http from 'http';
 import { v4 as uuidv4 } from 'uuid';
 
 import { Lobby } from './lobby';
-import { User } from './user';
+import { User, VirtualUser } from './user';
 import { Logger } from '../utils/logger';
 
 const SOCKET_PORT = 3001;
@@ -26,6 +26,13 @@ export const initialize = (lobby: Lobby) =>  {
       logger.debug(`test recieved from user ${userId}`);
       socket.broadcast.emit('ack');
     });
+  });
+
+  io.of('bots').on('connection', socket => {
+    const uuid = uuidv4();
+    logger.debug(`Bot connected ${uuid}`);
+    lobby.addUser(new VirtualUser(uuid, socket));
+    socket.emit('bot_initialized', socket.id);
   });
 
   socketServer.listen(SOCKET_PORT, HOSTNAME);

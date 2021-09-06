@@ -1,6 +1,7 @@
 <template>
   <div class="hello">
     <h1>{{ msg }}</h1>
+    <h2 v-if="online">Online Game Mode</h2>
     <h3>Enter your code below to join a game</h3>
     <div class="half-margin-top">
       <input type="text" v-model="gameId"/>
@@ -22,6 +23,7 @@ export default Vue.extend({
   name: 'JoinGame',
   props: {
     msg: String,
+    online: Boolean,
   },
   data: function() {
     return {
@@ -44,7 +46,7 @@ export default Vue.extend({
         });
     },
     createGame() {
-      this.axios.post('/game')
+      this.axios.post('/game', { online: this.online })
         .then(response => {
           this.createdGameId = response.data.roomId;
         })

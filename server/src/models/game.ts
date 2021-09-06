@@ -1,7 +1,7 @@
 import * as StateMachine from 'javascript-state-machine';
 import { GameBoard } from './game-board';
 import { Round } from './round';
-import { User, SanitizedUser } from './user';
+import { User, SanitizedUser, VirtualUser } from './user';
 import { HostAction } from './host-action';
 import { PlayerAction } from './player-action';
 import { JudgeAction } from './judge-action';
@@ -17,6 +17,14 @@ import { validateWager } from '../utils/validators';
 import { DebugAction } from './debug-action';
 import { config } from '../config';
 import { Actions } from './actions';
+import { v4 as uuidv4 } from 'uuid';
+import { JudgeBot } from './bot-behavior';
+
+export interface IGameOptions {
+    roomId: string,
+    gameBoard: GameBoard,
+    isOnline?: boolean,
+}
 
 interface IUserMemo {
     [Role.HOST]: User;
@@ -82,6 +90,8 @@ export class Game {
         [Role.JUDGE]: null,
         [Role.PLAYER]: [],
     };
+    /** If game is online mode or local mode */
+    private _isOnline = false;
     public fsm = new StateMachine({
         init: 'awaitPlayers',
         transitions: [
@@ -259,9 +269,14 @@ export class Game {
         },
     });
 
-    constructor (roomId: string, board: GameBoard) {
-        this._roomId = roomId;
-        this.board = board;
+    public get isOnline () {
+        return this._isOnline;
+    }
+
+    constructor (options: IGameOptions) {
+        this._roomId = options.roomId;
+        this.board = options.gameBoard;
+        this._isOnline = options.isOnline || false;
     }
 
     public addPlayer(user: User, username: string, rejoin?: boolean) {
