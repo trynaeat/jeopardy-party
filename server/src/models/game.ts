@@ -9,7 +9,7 @@ import { GameUpdate } from './game-update';
 import { Role } from './role';
 import { Timer } from './timer';
 import * as _ from 'lodash';
-import { socketServer } from './socket-server';
+import { botSocketServer, socketServer } from './socket-server';
 import { Question } from './question';
 import { Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -488,6 +488,9 @@ export class Game {
         if (!rejoin && !this.fsm.is('awaitPlayers')) {
             throw new UserJoinError('Game has started!', USER_ERROR_TYPE.GAME_STARTED);
         }
+        if (judge.isBot) {
+            (judge as VirtualUser).connect();
+        }
         this.judge = judge;
         this.listenToJudge(judge);
         this.syncAll();
@@ -646,6 +649,7 @@ export class Game {
     private syncAll(firstUpdate = false) {
         const state = new GameUpdate(this, firstUpdate);
         socketServer().to(`room_${this._roomId}`).emit('sync', state);
+        botSocketServer().to(`room_${this._roomId}`).emit('sync', state);
     }
 
     public syncUser(user: User) {

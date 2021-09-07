@@ -5,6 +5,7 @@ import { GameUtils } from '../utils';
 import * as _ from 'lodash';
 import { Logger } from '../utils/logger';
 import { createBot } from '../models/user';
+import { JudgeBot } from '../models/bot-behavior';
 
 export const router = new Router();
 
@@ -23,6 +24,8 @@ router.post('/game', async ctx => {
   if (online) {
     logger.debug(`New online game room ${id}`);
     const judgeBot = await createBot(<Lobby>ctx.lobby);
+    judgeBot.behavior = new JudgeBot(judgeBot.clientSocket);
+    room.addUser(judgeBot);
     game.setJudge(judgeBot);
   } else {
     logger.debug(`New local game room ${id}`);

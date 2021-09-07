@@ -142,16 +142,27 @@ export class VirtualUser extends User {
     this._isBot = true;
   }
 
+  /** Start doing behavior, listen for server events or whatever */
   public connect () {
     this._behavior.connect();
   }
 
+  /** Stop behavior and disconnect from socket server */
   public disconnect () {
     this._behavior.disconnect();
+    this._clientSocket.disconnect();
   }
 
   public set clientSocket (socket: SocketIOClient.Socket) {
     this._clientSocket = socket;
+  }
+
+  public get clientSocket () {
+    return this._clientSocket;
+  }
+
+  public set behavior (behavior: IBotBehavior) {
+    this._behavior = behavior;
   }
 }
 
@@ -168,5 +179,5 @@ export function createBot (lobby: Lobby): Promise<VirtualUser> {
       user.username = id;
       resolve(user);
     });
-  })
+  });
 }

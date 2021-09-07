@@ -12,6 +12,7 @@ const SOCKET_PORT = 3001;
 const HOSTNAME = '0.0.0.0';
 
 let server: Server;
+let botServer: socket.Namespace
 
 export const initialize = (lobby: Lobby) =>  {
   const logger = Logger.getLogger();
@@ -19,6 +20,7 @@ export const initialize = (lobby: Lobby) =>  {
   const socketServer = http.createServer(app.callback());
   const io = socket(socketServer);
   server = io;
+  botServer = io.of('bots');
   io.on('connection', socket => {
     const uuid = uuidv4();
     lobby.addUser(new User(uuid, socket));
@@ -41,4 +43,8 @@ export const initialize = (lobby: Lobby) =>  {
 
 export const socketServer = () => {
   return server;
+}
+
+export const botSocketServer = () => {
+  return botServer;
 }
