@@ -10,7 +10,7 @@
             <div v-if="role === 'spectator'">
                 <PlayerJoin></PlayerJoin>
             </div>
-            <div class="base-margin-top" v-if="role === 'spectator'">
+            <div class="base-margin-top" v-if="role === 'spectator' && !isOnline">
                 <JudgeJoin></JudgeJoin>
             </div>
             <div v-if="role === 'host'">
@@ -44,6 +44,7 @@ export default Vue.extend({
           role: (state: any) => state.role,
           players: (state: any) => state.players,
           judge: (state: any) => state.judge,
+          isOnline: (state: any) => state.isOnline,
       }),
       gameId: function () {
           return this.$route.params.id;

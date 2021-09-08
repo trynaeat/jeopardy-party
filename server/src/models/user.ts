@@ -10,6 +10,7 @@ export class User {
   private _winnings = 0; // If they're a player, their money total
   private _wager?: number; // Final jeopardy wager
   private _signature?: string; // User's drawn signature, as an SVG image
+  private _lastAnswer?: string; // User's last response to a regular question
   private _finalAnswer?: string; // Answer to final jeopardy
   private _hasAnswered = false; // Whether they've answered final jeopardy
   private _lastWinnings = 0; // Last winnings/losings due to most recent response
@@ -26,6 +27,7 @@ export class User {
     this._wager = 0;
     this._lastWinnings = 0;
     this._finalAnswer = null;
+    this._lastAnswer = null;
     this._hasAnswered = false;
   }
 
@@ -33,6 +35,7 @@ export class User {
     this._winnings = user.winnings;
     this._wager = user.wager;
     this._lastWinnings = user.lastWinnings;
+    this._lastAnswer = user.lastAnswer;
     this._finalAnswer = user.finalAnswer;
     this._hasAnswered = user.hasAnswered;
   }
@@ -92,6 +95,14 @@ export class User {
     this._signature = sig;
   }
 
+  get lastAnswer(): string {
+    return this._lastAnswer;
+  }
+
+  set lastAnswer(a: string) {
+    this._lastAnswer = a;
+  }
+
   get finalAnswer(): string {
     return this._finalAnswer;
   }
@@ -123,6 +134,7 @@ export class SanitizedUser {
   public signature?: string;
   public hasAnswered?: boolean;
   public lastWinnings?: number;
+  public lastAnswer?: string;
 
   constructor (user: User) {
     this.username = user.username;
@@ -130,6 +142,7 @@ export class SanitizedUser {
     this.signature = user.signature;
     this.hasAnswered = user.hasAnswered;
     this.lastWinnings = user.lastWinnings;
+    this.lastAnswer = user.lastAnswer;
   }
 }
 

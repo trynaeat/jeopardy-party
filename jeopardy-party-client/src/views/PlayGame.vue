@@ -8,10 +8,16 @@
     </div>
     <div class="flex-fluid">
       <div class="flex main">
-        <Host v-if="role === 'host'"></Host>
-        <Spectator v-if="role === 'spectator'"></Spectator>
-        <Player v-if="role === 'player'"></Player>
-        <Judge v-if="role === 'judge'"></Judge>
+        <template v-if="isOnline">
+          <OnlinePlayer v-if="role === 'player'"></OnlinePlayer>
+          <OnlineSpectator v-if="role === 'spectator'"></OnlineSpectator>
+        </template>
+        <template v-else>
+          <Host v-if="role === 'host'"></Host>
+          <Spectator v-if="role === 'spectator'"></Spectator>
+          <Player v-if="role === 'player'"></Player>
+          <Judge v-if="role === 'judge'"></Judge>
+        </template>
       </div>
     </div>
     <div class="side-lights">
@@ -32,6 +38,8 @@ import Players from '@/components/Players.vue';
 import BoardLights from '@/components/svg/boardLights/boardLights.vue';
 import Debug from '@/components/Debug.vue';
 import GameClock from '@/components/GameClock.vue';
+import OnlinePlayer from '@/components/online/OnlinePlayer.vue';
+import OnlineSpectator from '@/components/online/OnlineSpectator.vue';
 import { Role } from '../interfaces';
 
 export default Vue.extend({
@@ -45,6 +53,8 @@ export default Vue.extend({
     Players,
     BoardLights,
     GameClock,
+    OnlinePlayer,
+    OnlineSpectator,
   },
   mounted: function() {
     console.log('joining...');
@@ -64,6 +74,7 @@ export default Vue.extend({
         armed: (state: any) => state.currentState === 'buzzersArmed',
         gameTimer: (state: any) => state.gameTimer,
         debug: (state: any) => state.debug,
+        isOnline: (state: any) => state.isOnline,
     }),
   },
   // Attempt to rejoin the game if we have a saved user id

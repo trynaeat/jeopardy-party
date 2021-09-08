@@ -55,8 +55,9 @@ export class Room {
     this._users.push(user);
     user.socket.join(`room_${this._id}`); // Join user to room's Socket.io "Room"
     /* First user to join is the host, subsequent ones default to spectator */
+    /* Online games don't have a host */
     let isHost = false;
-    if (!this._game.host && !user.isBot) {
+    if (!this._game.isOnline && !this._game.host && !user.isBot) {
       this._game.setHost(user);
       isHost = true;
     } else {

@@ -37,6 +37,7 @@ const store: StoreOptions<RootState> = {
     gameTimer: undefined,
     judge: undefined,
     answer: undefined,
+    isOnline: false,
   },
   mutations: {
     pushToast(state, toast: Toast) {
@@ -79,6 +80,9 @@ const store: StoreOptions<RootState> = {
         return p;
       });
       state.players = players;
+    },
+    setIsOnline(state, isOnline: boolean) {
+      state.isOnline = isOnline;
     },
     setActivePlayer(state, player: User) {
       state.activePlayer = player;
@@ -162,6 +166,7 @@ const store: StoreOptions<RootState> = {
     },
     SOCKET_sync(state, gameState: GameState) {
       console.log('game sync!');
+      this.commit('setIsOnline', gameState.isOnline);
       this.commit('setBoard', gameState.board);
       this.commit('setCurrentState', gameState.state);
       this.commit('setPlayers', gameState.players);

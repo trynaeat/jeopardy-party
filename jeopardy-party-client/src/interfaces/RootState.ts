@@ -24,4 +24,5 @@ export interface RootState {
     answer?: string;
     debug: boolean;
     keyBuffer: string[];
+    isOnline: boolean;
 }

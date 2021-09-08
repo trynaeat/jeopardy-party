@@ -23,4 +23,5 @@ export interface GameState {
     buzzerTimer?: ITimer;
     gameTimer?: ITimer;
     round: Round;
+    isOnline: boolean;
 }

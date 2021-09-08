@@ -17,8 +17,6 @@ import { validateWager } from '../utils/validators';
 import { DebugAction } from './debug-action';
 import { config } from '../config';
 import { Actions } from './actions';
-import { v4 as uuidv4 } from 'uuid';
-import { JudgeBot } from './bot-behavior';
 
 export interface IGameOptions {
     roomId: string,
@@ -101,7 +99,8 @@ export class Game {
             { name: 'buzzIn', from: 'buzzersArmed', to: 'playerAnswer' },
             { name: 'skipQuestion', from: 'buzzersArmed', to: 'showingAnswer' },
             { name: 'judgeAnswer', from: 'playerAnswer', to: 'judgingAnswer' },
-            { name: 'questionFail', from: 'judgingAnswer', to: 'buzzersArmed' },
+            { name: 'questionFail', from: 'judgingAnswer', to: 'showingBadResponse' },
+            { name: 'backToQuestion', from: 'showingBadResponse', to: 'buzzersArmed' },
             { name: 'showAnswer', from: 'judgingAnswer', to: 'showingAnswer' },
             { name: 'returnToBoard', from: 'showingAnswer', to: 'questionBoard' },
             { name: 'advanceRound', from: 'showingAnswer', to: 'roundAdvance' },
@@ -206,6 +205,32 @@ export class Game {
             },
             onQuestionFail: () => {
                 this.activePlayer = null;
+                if (!this._isOnline) {
+                    setTimeout(() => {
+                        this.fsm.backToQuestion();
+                        this.syncAll();
+                    });
+                } else {
+                    /* Online mode - show the previous response for a few seconds */
+                    if (this.gameTimer) {
+                        this.gameTimer.resetTimer();
+                    }
+                    this.gameTimer = new Timer(3000, 100);
+                    this.gameTimer.timer$
+                    .pipe(
+                        takeUntil(this.resetGameTimer$),
+                    )
+                    .subscribe((timeRemaining: number) => {
+                        if (timeRemaining < 1) {
+                            this.resetGameTimer$.next();
+                            this.gameTimer.resetTimer();
+                            this.gameTimer = null;
+                            this.fsm.backToQuestion();
+                            this.syncAll();
+                        }
+                    });
+                    this.gameTimer.startTimer();
+                }
             },
             onShowAnswer: () => {
                 this.activeQuestion.answered = true;
@@ -218,6 +243,7 @@ export class Game {
                     // Time's up! Go back to the board or advance the round.
                     if (timeRemaining < 1) {
                         this.resetGameTimer$.next();
+                        this.gameTimer.resetTimer();
                         this.gameTimer = null;
                         if (this.allAnswered(this.round)) {
                             this.fsm.advanceRound();
@@ -260,6 +286,8 @@ export class Game {
                 if (this.wasCorrect) {
                     this.playersTurn = this.activePlayer; // if the last person to answer got it right, they get to pick next Q
                 }
+
+                this.players.forEach(p => p.lastAnswer = '');
 
                 this.wasCorrect = null;
                 this.activePlayer = null;
@@ -390,7 +418,9 @@ export class Game {
                         .subscribe(timeRemaining => {
                             // Time's up! Go to judging answer.
                             if (timeRemaining < 1) {
-                                this.fsm.judgeAnswer();
+                                if (this.fsm.can('judgeAnswer')) {
+                                    this.fsm.judgeAnswer();
+                                }
                                 this.resetBuzzer$.next();
                                 this.buzzerTimer = null;
                                 this.syncAll();
@@ -463,6 +493,49 @@ export class Game {
                         this.syncAll();
                     }
                     break;
+                // Online mode only, take text response they submitted
+                case PlayerAction.ANSWER_QUESTION:
+                    if (!this._isOnline || !this.fsm.is('playerAnswer') || user !== this.activePlayer) {
+                        return;
+                    }
+
+                    user.lastAnswer = options.answer;
+                    if (this.fsm.can('judgeAnswer')) {
+                        this.fsm.judgeAnswer();
+                    }
+                    this.syncAll();
+                    break;
+                // Online mode only, player 1 can start the game
+                case PlayerAction.START_GAME:
+                    if (
+                        this._isOnline &&
+                        this.players[0] === user &&
+                        this.players.length >= 2 && 
+                        this.fsm.can('startGame')
+                    ) {
+                        this.fsm.startGame();
+                        this.syncAll();
+                    }
+                    break;
+                // Online mode only, players can select their own questions
+                case PlayerAction.SELECT_QUESTION:
+                    if (
+                        this._isOnline &&
+                        this.fsm.can('selectQuestion') &&
+                        this.playersTurn === user
+                    ) {
+                        const selected = this.selectQuestion(options.category, options.qNum);
+                        if (selected.disabled || selected.answered) {
+                            return;
+                        }
+                        this.activeQuestion = selected
+                        this.activeQuestion.answered = true; // Clear question off board
+                        this.fsm.selectQuestion();
+                        // Send the judge (and only the judge) the answer
+                        this.judge.socket.emit('question_answer', this.activeQuestion.answer);
+                        this.syncAll();
+                    }
+                    break;
             }
         });
     }
@@ -531,7 +604,7 @@ export class Game {
         user.socket.on(Actions.JUDGE_ACTION, (action: JudgeAction, options: any) => {
             switch(action) {
                 case JudgeAction.ANSWER_RULING:
-                    if (this.fsm.is('playerAnswer')) {
+                    if (this.fsm.is('playerAnswer') && !this._isOnline) {
                         this.fsm.judgeAnswer();
                     }
                     if (this.fsm.is('judgingAnswer')) {

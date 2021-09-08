@@ -43,12 +43,18 @@ export default Vue.extend({
           gridClass: (state: any) => {
               const categories = _.keys(_.get(state.board, state.round, []));
               return categories ? `grid-${categories.length}-col` : '';
-          }
+          },
+          isOnline: (state: any) => state.isOnline,
       }),
   },
   methods: {
     selectQuestion(category: string, qNum: number) {
-      if (this.clickable) {
+      if (!this.clickable) {
+        return;
+      }
+      if (this.isOnline) {
+        this.$socket.emit('playerAction', 'selectQuestion', { category, qNum: qNum - 1 });
+      } else {
         this.$socket.emit('hostAction', 'selectQuestion', { category, qNum: qNum - 1 });
       }
     },

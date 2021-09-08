@@ -24,6 +24,7 @@ export class GameUpdate {
     public buzzerTimer: SanitizedTimer;
     public gameTimer: SanitizedTimer;
     public round: Round;
+    public isOnline: boolean;
 
     constructor(game: Game, firstUpdate = false) {
         this.state = game.fsm.state;
@@ -42,6 +43,7 @@ export class GameUpdate {
                 })
             })
         });
+        this.isOnline = game.isOnline;
         this.round = game.round;
     }
 }

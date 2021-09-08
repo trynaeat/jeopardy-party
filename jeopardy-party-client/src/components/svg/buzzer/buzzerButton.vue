@@ -289,13 +289,13 @@ export default Vue.extend({
         this.clicked = false;
      },
      onKeydown: function (e: KeyboardEvent) {
-      if (e.key === 'Enter' && !this.clicked) {
+      if ((e.key === 'Spacebar' || e.key === ' ') && !this.clicked) {
          this.clicked = true;
          this.$emit('click', e);
       }
      },
      onKeyup: function (e: KeyboardEvent) {
-        if (e.key === 'Enter') {
+        if (e.key === 'Spacebar' || e.key === ' ') {
            this.clicked = false;
         }
      }
