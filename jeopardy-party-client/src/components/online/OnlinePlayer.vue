@@ -23,9 +23,9 @@
       <FinalJeopardy v-if="currentState === 'finalJeopardy' || currentState === 'judgingFinal'"></FinalJeopardy>
       <FinalAnswers v-if="currentState === 'showingFinalAnswer'"></FinalAnswers>
       <ShowWinner v-if="currentState === 'showingWinner'"></ShowWinner>
-    </div>
-    <div v-bind:class="{ 'hidden': showTimer }" class="flex flex-fluid flex-center half-margin-top">
+      <div v-bind:class="{ 'hidden': showTimer }" class="flex flex-fluid flex-center half-margin-top">
         <Players></Players>
+      </div>
     </div>
     <div v-if="showTimer">
       <Timer></Timer>

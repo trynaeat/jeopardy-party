@@ -600,7 +600,7 @@ export class Game {
         this.spectators.push(user);
         user.socket.join(`room_${this._roomId}_spectators`);
         user.socket.emit('role', { role: Role.SPECTATOR });
-        this.syncAll();
+        this.syncAll(true);
     }
 
     public removeSpectator(user: User) {

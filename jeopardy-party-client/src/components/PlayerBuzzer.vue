@@ -9,7 +9,7 @@
           :width="'300px'"
           v-on:click="onBuzz()">
         </BuzzerButton>
-        <div v-bind:class="{ 'hidden': !hasBuzzed || currentState === 'judgingAnswer' }" class="flex flex-fluid flex-center base-margin-top">
+        <div v-bind:class="{ 'hidden': !isOnline || !hasBuzzed || currentState === 'judgingAnswer' }" class="flex flex-fluid flex-center base-margin-top">
           <input ref="answer" type="text" style="width: 500px" v-model="answer" />
         </div>
       </div>
