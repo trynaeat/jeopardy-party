@@ -24,6 +24,7 @@
       <BoardLights :lit="armed"></BoardLights>
     </div>
     <GameClock v-if="gameTimer && gameTimer.timeRemaining > 0"></GameClock>
+    <BuzzInClock v-if="currentState === 'buzzersArmed'"></BuzzInClock>
   </div>
 </template>
 
@@ -38,6 +39,7 @@ import Players from '@/components/Players.vue';
 import BoardLights from '@/components/svg/boardLights/boardLights.vue';
 import Debug from '@/components/Debug.vue';
 import GameClock from '@/components/GameClock.vue';
+import BuzzInClock from '@/components/BuzzInClock.vue';
 import OnlinePlayer from '@/components/online/OnlinePlayer.vue';
 import OnlineSpectator from '@/components/online/OnlineSpectator.vue';
 import { Role } from '../interfaces';
@@ -53,6 +55,7 @@ export default Vue.extend({
     Players,
     BoardLights,
     GameClock,
+    BuzzInClock,
     OnlinePlayer,
     OnlineSpectator,
   },
@@ -73,8 +76,10 @@ export default Vue.extend({
         role: (state: any) => state.role,
         armed: (state: any) => state.currentState === 'buzzersArmed',
         gameTimer: (state: any) => state.gameTimer,
+        buzzInTimer: (state: any) => state.buzzInTimer,
         debug: (state: any) => state.debug,
         isOnline: (state: any) => state.isOnline,
+        currentState: (state: any) => state.currentState,
     }),
   },
   // Attempt to rejoin the game if we have a saved user id

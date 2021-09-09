@@ -78,10 +78,12 @@ export class Game {
     public wageredPlayers: User[] = [];
     public buzzerTimer: Timer;
     public gameTimer: Timer;
+    public buzzInTimer: Timer; // Timer in which people can buzz in
     public wasCorrect: boolean;
     private spectators: User[] = [];
     private resetBuzzer$ = new Subject();
     private resetGameTimer$ = new Subject();
+    private resetBuzzInTimer$ = new Subject();
     // Saves history of players who have joined to allow rejoins
     private _userMemo: IUserMemo = {
         [Role.HOST]: null,
@@ -125,6 +127,25 @@ export class Game {
             onDebugAdvance: () => {
                 this._advanceRound();
             },
+            onArmBuzzers: () => {
+                /** Set 7 second total timer for players to buzz in */
+                this.resetBuzzInTimer$.next();
+                this.buzzInTimer = new Timer(7000, 100);
+                this.buzzInTimer.timer$.pipe(
+                    takeUntil(this.resetBuzzInTimer$),
+                )
+                .subscribe((timeRemaining: number) => {
+                    if (timeRemaining < 1) {
+                        this.resetBuzzInTimer$.next();
+                        this.buzzInTimer = null;
+                        if (this.fsm.can('skipQuestion')) {
+                            this.fsm.skipQuestion();
+                        }
+                        this.syncAll();
+                    }
+                });
+                this.buzzInTimer.startTimer();
+            },
             onAdvanceToFinal: () => {
                 /* Anyone with less than 0 bucks is out of the game */
                 _.remove(this.players, p => {
@@ -156,6 +177,12 @@ export class Game {
                 });
                 this.gameTimer.startTimer();
             },
+            onBuzzIn: () => {
+                // pause buzzIn timer
+                if (this.buzzInTimer) {
+                    this.buzzInTimer.pauseTimer();
+                }
+            },
             onFinalJeopardy: () => {
                 // Give only judge the answer to the clue
                 socketServer().to(`room_${this._roomId}`).emit('question_answer', null);
@@ -172,7 +199,6 @@ export class Game {
                     if (timeRemaining < 1) {
                         this.resetGameTimer$.next();
                         this.gameTimer.resetTimer();
-                        this.gameTimer = null;
                         this.fsm.endFinal();
                         this.syncAll();
                     }
@@ -204,7 +230,6 @@ export class Game {
                 socketServer().to(`room_${this._roomId}`).emit('question_answer', this.activeQuestion.answer);
             },
             onQuestionFail: () => {
-                this.activePlayer = null;
                 if (!this._isOnline) {
                     setTimeout(() => {
                         this.fsm.backToQuestion();
@@ -232,6 +257,12 @@ export class Game {
                     this.gameTimer.startTimer();
                 }
             },
+            onBackToQuestion: () => {
+                this.activePlayer = null;
+                if (this.buzzInTimer) {
+                    this.buzzInTimer.startTimer(); // resume it
+                }
+            },
             onShowAnswer: () => {
                 this.activeQuestion.answered = true;
                 this.gameTimer = new Timer(3000, 100);
@@ -257,8 +288,13 @@ export class Game {
                 this.gameTimer.startTimer();
             },
             onSkipQuestion: () => {
+                socketServer().to(`room_${this._roomId}`).emit('question_answer', this.activeQuestion.answer);
+                if (this.buzzInTimer) {
+                    this.buzzInTimer.resetTimer();
+                    this.resetBuzzInTimer$.next();
+                    this.buzzInTimer = null;
+                }
                 this.activeQuestion.answered = true;
-                this.activeQuestion = null;
                 this.wasCorrect = false;
                 this.gameTimer = new Timer(3000, 100);
                 this.gameTimer.timer$
@@ -403,7 +439,7 @@ export class Game {
     }
 
     private listenToPlayer(user: User) {
-        user.socket.on('playerAction', (action: PlayerAction, options: any) => {
+        user.socket.on('playerAction', (action: PlayerAction | DebugAction, options: any) => {
             switch(action) {
                 case PlayerAction.BUZZ_IN:
                     if (this.fsm.can('buzzIn') && !this.buzzedPlayers.find(u => u === user) && !this.buzzerPenalty[user.id]) {
@@ -533,6 +569,23 @@ export class Game {
                         this.fsm.selectQuestion();
                         // Send the judge (and only the judge) the answer
                         this.judge.socket.emit('question_answer', this.activeQuestion.answer);
+                        this.syncAll();
+                    }
+                    break;
+                // Online mode only, player 1 can end the game
+                case PlayerAction.END_GAME:
+                    if (
+                        this._isOnline &&
+                        this.players[0] === user &&
+                        this.fsm.can('endGame'))
+                    {
+                        this.fsm.endGame();
+                        this.syncAll();
+                    }
+                    break;
+                case DebugAction.ADVANCE_ROUND:
+                    if (config.debug && this.fsm.can('debugAdvance')) {
+                        this.fsm.debugAdvance();
                         this.syncAll();
                     }
                     break;

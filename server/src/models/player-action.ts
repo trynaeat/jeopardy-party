@@ -6,4 +6,5 @@ export enum PlayerAction {
     ANSWER_FINAL = 'answerFinal',
     START_GAME = 'startGame',
     SELECT_QUESTION = 'selectQuestion',
+    END_GAME = 'endGame',
 }

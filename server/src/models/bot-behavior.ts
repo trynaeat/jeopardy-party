@@ -6,6 +6,11 @@ import { Actions } from './actions';
 import { JudgeAction } from './judge-action';
 import * as stringSimilarity from 'string-similarity';
 
+interface IFinalAnswerEvent {
+    username: string;
+    finalAnswer: string;
+};
+
 export interface IBotBehavior {
     connect: () => void;
     disconnect: () => void;
@@ -19,6 +24,7 @@ export class JudgeBot implements IBotBehavior {
     private _gameStateChange$: Observable<GameUpdate>;
     private _destroy$ = new Subject();
     private _answer = '';
+    private _finalAnswers: IFinalAnswerEvent[] = [];
 
     constructor (socket: SocketIOClient.Socket) {
         this._socket = socket;
@@ -36,6 +42,9 @@ export class JudgeBot implements IBotBehavior {
         this._socket.on('question_answer', (answer: string) => {
             this._answer = answer;
         });
+        this._socket.on('final_answer', (event: IFinalAnswerEvent[]) => {
+            this._finalAnswers = event;
+        });
     }
 
     public disconnect () {
@@ -50,37 +59,57 @@ export class JudgeBot implements IBotBehavior {
         )
         .subscribe(update => {
             const state = update.state;
-            this._logger.debug(state);
             if (state === 'readQuestion') {
-                this.armBuzzers();
+                this.armBuzzers(update);
             }
             if (state === 'judgingAnswer') {
                 this.judgeAnswer(update);
             }
+            if (state === 'judgingFinal') {
+                this.judgeFinal(update);
+            }
         });
     }
 
-    private armBuzzers () {
+    private armBuzzers (state: GameUpdate) {
+        const question = state.activeQuestion.question;
+        const words = state.activeQuestion.question.split(' ').length;
+        // Average read speed of 250 wpm ~= 4 wps
+        const waitTime = 250 * words;
         setTimeout(() => {
             this._socket.emit(Actions.JUDGE_ACTION, JudgeAction.ARM_BUZZER);
-        }, 3000);
+        }, waitTime);
     }
 
     private judgeAnswer (state: GameUpdate) {
-        let response = state.activePlayer.lastAnswer;
-        if (response) {
-            response = response
-                .trim()
-                .toLowerCase();
-        }
-        const correctResponse = this._answer.toLowerCase();
+        const correct = this._compareAnswer(this._answer, state.activePlayer.lastAnswer);
+        this._socket.emit(Actions.JUDGE_ACTION, JudgeAction.ANSWER_RULING, { correct, username: state.activePlayer.username, value: state.activeQuestion.value  });
+    }
+
+    private judgeFinal (state: GameUpdate) {
+        const correctPlayers = state.players.filter(p => {
+            const found = this._finalAnswers.find(u => u.username === p.username);
+            const response = found && found.finalAnswer;
+            return this._compareAnswer(this._answer, response);
+        })
+        .map(p => p.username);
+
+        this._socket.emit(Actions.JUDGE_ACTION, JudgeAction.RULE_FINAL, { correctPlayers });
+    }
+
+    /**
+     * Returns true if judged correct, false otherwise
+     * @param correct
+     * @param actual
+     */
+    private _compareAnswer (correct: string, actual: string) {
+        let response = (actual || '')
+            .trim()
+            .toLowerCase();
+        const correctResponse = correct.toLowerCase();
         const similarity = stringSimilarity.compareTwoStrings(response, correctResponse);
         this._logger.debug(`Response: ${response}, Correct: ${correctResponse}, Similarity: ${similarity}`);
-        let correct = false;
-        if (similarity > 0.8) {
-            correct = true;
-        }
 
-        this._socket.emit(Actions.JUDGE_ACTION, JudgeAction.ANSWER_RULING, { correct, username: state.activePlayer.username, value: state.activeQuestion.value  });
+        return similarity >= 0.8;
     }
 }

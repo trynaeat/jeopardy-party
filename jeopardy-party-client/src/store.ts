@@ -12,8 +12,10 @@ Vue.use(Vuex);
 const superSecretDebugKey = 'mikerichardssucks';
 const buzzerSync$ = new Subject();
 const gameTimerSync$ = new Subject();
+const buzzInTimerSync$ = new Subject();
 let buzzerTimer: Timer;
 let gameTimer: Timer;
+let buzzInTimer: Timer;
 
 /**
  * Note anything with the STORE_ prefix gets called automagically by vue-socket.io
@@ -35,6 +37,7 @@ const store: StoreOptions<RootState> = {
     playersTurn: undefined,
     buzzerTimer: undefined,
     gameTimer: undefined,
+    buzzInTimer: undefined,
     judge: undefined,
     answer: undefined,
     isOnline: false,
@@ -98,6 +101,9 @@ const store: StoreOptions<RootState> = {
     },
     setGameTimer(state, timer: ITimer) {
       state.gameTimer = timer;
+    },
+    setBuzzInTimer(state, timer: ITimer) {
+      state.buzzInTimer = timer;
     },
     setJudge(state, judge: User) {
       state.judge = judge;
@@ -185,6 +191,9 @@ const store: StoreOptions<RootState> = {
       if (gameTimer) {
         gameTimer.stopTimer();
       }
+      if (buzzInTimer) {
+        buzzInTimer.stopTimer();
+      }
       this.commit('setBuzzerTimer', gameState.buzzerTimer);
       // Start local buzzer timer and count down
       if (gameState.buzzerTimer) {
@@ -218,7 +227,21 @@ const store: StoreOptions<RootState> = {
         gameTimer = new Timer (0, 0);
         this.commit('setGameTimer', gameTimer);
       }
-
+      // Same for game buzzIn timer
+      if (gameState.buzzInTimer) {
+        buzzInTimer = new Timer(gameState.buzzInTimer.timeRemaining, 100);
+        buzzInTimerSync$.next();
+        buzzInTimer.timer$.pipe(
+          takeUntil(buzzInTimerSync$),
+        )
+        .subscribe((timeRemaining: number) => {
+          this.commit('setBuzzInTimer', { timeRemaining, timeLimit: buzzInTimer.timeLimit });
+        });
+        buzzInTimer.startTimer();
+      } else {
+        buzzInTimer = new Timer (0, 0);
+        this.commit('setBuzzInTimer', buzzInTimer);
+      }
     },
   },
 };

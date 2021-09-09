@@ -15,6 +15,7 @@ export default Vue.extend({
   methods: {
     advanceRound: function (event: Event) {
         this.$socket.emit('hostAction', 'debug_advance_round');
+        this.$socket.emit('playerAction', 'debug_advance_round');
     },
   }
 });

@@ -17,14 +17,17 @@
       </div>
       <GameBoard :clickable="isMyTurn" v-if="currentState === 'questionBoard'"></GameBoard>
       <Answer v-if="currentState === 'showingAnswer'"></Answer>
+      <BadAnswer v-if="currentState === 'showingBadResponse'"></BadAnswer>
       <RoundAdvance v-if="currentState === 'roundAdvance'"></RoundAdvance>
       <Wager v-if="currentState === 'finalWager'"></Wager>
       <FinalJeopardy v-if="currentState === 'finalJeopardy' || currentState === 'judgingFinal'"></FinalJeopardy>
+      <FinalAnswers v-if="currentState === 'showingFinalAnswer'"></FinalAnswers>
+      <ShowWinner v-if="currentState === 'showingWinner'"></ShowWinner>
     </div>
-    <div v-bind:class="{ 'hidden': showBuzzer }" class="flex flex-fluid flex-center half-margin-top">
+    <div v-bind:class="{ 'hidden': showTimer }" class="flex flex-fluid flex-center half-margin-top">
         <Players></Players>
     </div>
-    <div v-if="showBuzzer">
+    <div v-if="showTimer">
       <Timer></Timer>
     </div>
   </div>
@@ -39,9 +42,12 @@ import RoundAdvance from '../RoundAdvance.vue';
 import PlayerMenu from '../PlayerMenu.vue';
 import GameBoard from '../GameBoard.vue';
 import QuestionPrompt from '../QuestionPrompt.vue';
+import FinalAnswers from '../FinalAnswers.vue';
+import ShowWinner from '../ShowWinner.vue';
 import Timer from '../Timer.vue';
 import Wager from '../Wager.vue';
 import Players from '../Players.vue';
+import BadAnswer from '../BadAnswer.vue';
 import { mapState } from 'vuex';
 import * as _ from 'lodash-es';
 
@@ -49,6 +55,7 @@ export default Vue.extend({
   name: 'OnlinePlayer',
   components: {
     Answer,
+    BadAnswer,
     FinalJeopardy,
     PlayerBuzzer,
     Players,
@@ -58,6 +65,8 @@ export default Vue.extend({
     Wager,
     GameBoard,
     QuestionPrompt,
+    FinalAnswers,
+    ShowWinner,
   },
   computed: {
     ...mapState({
@@ -69,6 +78,7 @@ export default Vue.extend({
           isPlayerOne: (state: any) => state.players && state.players[0] && state.players[0].username === state.currentUser.username,
           isMyTurn: (state: any) => state.playersTurn && state.playersTurn.username === state.currentUser.username,
           showBuzzer: (state: any) => state.currentState === 'playerAnswer' || state.currentState === 'readQuestion' || state.currentState === 'buzzersArmed' || state.currentState === 'judgingAnswer' && state.currentState !== 'showingBadResponse',
+          showTimer: (state: any) => state.currentState === 'playerAnswer' && state.activePlayer && state.activePlayer.username === state.currentUser.username,
     }),
   },
   methods: {

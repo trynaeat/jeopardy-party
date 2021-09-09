@@ -23,6 +23,7 @@ export class GameUpdate {
     public state: string;
     public buzzerTimer: SanitizedTimer;
     public gameTimer: SanitizedTimer;
+    public buzzInTimer: SanitizedTimer;
     public round: Round;
     public isOnline: boolean;
 
@@ -35,6 +36,7 @@ export class GameUpdate {
         this.activePlayer = game.activePlayer ? _.omit(new SanitizedUser(game.activePlayer), 'signature') : null;
         this.playersTurn = game.playersTurn ? _.omit(new SanitizedUser(game.playersTurn), 'signature') : null;
         this.buzzerTimer = game.buzzerTimer ? new SanitizedTimer(game.buzzerTimer) : null;
+        this.buzzInTimer = game.buzzInTimer ? new SanitizedTimer(game.buzzInTimer) : null;
         this.gameTimer = game.gameTimer ? new SanitizedTimer(game.gameTimer) : null;
         this.board = _.mapValues(game.board, round => {
             return _.mapValues(round, questions => {

@@ -22,6 +22,7 @@ export interface GameState {
     activeQuestion?: Question;
     buzzerTimer?: ITimer;
     gameTimer?: ITimer;
+    buzzInTimer?: ITimer;
     round: Round;
     isOnline: boolean;
 }

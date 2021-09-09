@@ -15,6 +15,9 @@
             <div v-if="role === 'host'">
                 <button v-on:click="onContinue()">Continue</button>
             </div>
+            <div v-if="isOnline && role === 'player' && isPlayerOne">
+                <button v-on:click="onPlayerContinue()">Continue</button>
+            </div>
         </div>
       </div>
   </div>
@@ -31,12 +34,17 @@ export default Vue.extend({
           answer: (state: any) => state.answer,
           players: (state: any) => state.players,
           role: (state: any) => state.role,
+          isPlayerOne: (state: any) => state.players && state.players[0] && state.players[0].username === state.currentUser.username,
+          isOnline: (state: any) => state.isOnline,
       }),
   },
   methods: {
       onContinue: function () {
           this.$socket.emit('hostAction', 'endGame');
       },
+      onPlayerContinue: function () {
+          this.$socket.emit('playerAction', 'endGame');
+      }
   },
 });
 </script>
