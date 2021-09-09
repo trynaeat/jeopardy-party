@@ -1,12 +1,12 @@
 <template>
   <div class="main-content flex">
-    <IconPodium :height="'190px'" :width="'150px'"></IconPodium>
-    <IconPlayerPodium :height="'200px'" :width="'150px'" :player="players[0]" :active="players[0] && playersTurn.username === players[0].username"></IconPlayerPodium>
-    <IconPodium :height="'190px'" :width="'150px'"></IconPodium>
-    <IconPlayerPodium :height="'200px'" :width="'150px'" :player="players[1]" :active="players[1] && playersTurn.username === players[1].username"></IconPlayerPodium>
-    <IconPodium :height="'190px'" :width="'150px'"></IconPodium>
-    <IconPlayerPodium :height="'200px'" :width="'150px'" :player="players[2]" :active="players[2] && playersTurn.username === players[2].username"></IconPlayerPodium>
-    <IconPodium :height="'190px'" :width="'150px'"></IconPodium>
+    <IconPodium :height="podiumHeight" :width="podiumWidth"></IconPodium>
+    <IconPlayerPodium :height="podiumHeight" :width="podiumWidth" :player="players[0]" :active="players[0] && playersTurn.username === players[0].username"></IconPlayerPodium>
+    <IconPodium :height="podiumHeight" :width="podiumWidth"></IconPodium>
+    <IconPlayerPodium :height="podiumHeight" :width="podiumWidth" :player="players[1]" :active="players[1] && playersTurn.username === players[1].username"></IconPlayerPodium>
+    <IconPodium :height="podiumHeight" :width="podiumWidth"></IconPodium>
+    <IconPlayerPodium :height="podiumHeight" :width="podiumWidth" :player="players[2]" :active="players[2] && playersTurn.username === players[2].username"></IconPlayerPodium>
+    <IconPodium :height="podiumHeight" :width="podiumWidth"></IconPodium>
   </div>
 </template>
 
@@ -27,6 +27,8 @@ export default Vue.extend({
   },
   computed: {
     ...mapState({
+          podiumWidth: (state: any) => state.isOnline ? '100px' : '150px',
+          podiumHeight: (state: any) => state.isOnline ? '133px' : '200px',
           players: (state: any) => state.players,
           playersTurn: (state: any) => state.playersTurn || { },
     }),

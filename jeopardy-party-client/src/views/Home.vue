@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <img alt="Vue logo" src="../assets/logo.png">
-    <JoinGame msg="Welcome to Vue-Jeopardy!"/>
+    <JoinGame msg="Welcome to Jeo-Party!"/>
   </div>
 </template>
 

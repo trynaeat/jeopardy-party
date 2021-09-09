@@ -67,11 +67,11 @@ export default Vue.extend({
 .row {
   padding: 5px;
   &--category .card {
-    height: 10vh;
+    height: 8vh;
     padding-bottom: 0;
   }
   &--question .card {
-    height: 10vh;
+    height: 8vh;
     padding-top: 13px;
   }
   &-container {

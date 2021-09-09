@@ -22,6 +22,7 @@ export interface IGameOptions {
     roomId: string,
     gameBoard: GameBoard,
     isOnline?: boolean,
+    buzzerTime?: number, // How long each buzzed user gets to answer, in ms
 }
 
 interface IUserMemo {
@@ -64,6 +65,7 @@ export class UserJoinError extends Error {
 
 export class Game {
     private _roomId: string;
+    private _buzzerTime = 5000;
     public activeQuestion: Question;
     public activePlayer: User; // Player currently buzzed in
     public playersTurn: User; // Player whose turn it is
@@ -341,6 +343,7 @@ export class Game {
         this._roomId = options.roomId;
         this.board = options.gameBoard;
         this._isOnline = options.isOnline || false;
+        this._buzzerTime = options.buzzerTime || 5000;
     }
 
     public addPlayer(user: User, username: string, rejoin?: boolean) {
@@ -447,7 +450,7 @@ export class Game {
                         this.activePlayer = user;
                         this.buzzedPlayers.push(user);
                         this.buzzerTimer && this.buzzerTimer.resetTimer();
-                        this.buzzerTimer = new Timer(5000, 100);
+                        this.buzzerTimer = new Timer(this._buzzerTime, 100);
                         this.buzzerTimer.timer$.pipe(
                             takeUntil(this.resetBuzzer$),
                         )

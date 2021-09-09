@@ -5,7 +5,7 @@
       <h1>Player Name: {{ username }}</h1>
       <QuestionPrompt v-if="showBuzzer"></QuestionPrompt>
       <PlayerBuzzer v-if="showBuzzer"></PlayerBuzzer>
-      <div v-if="currentState === 'awaitPlayers'">
+      <div v-if="currentState === 'awaitPlayers'" class="await-players">
           <h3>Waiting on more players...</h3>
           <div v-if="isPlayerOne">
             <button @click="startGame()" :disabled="players.length < 2">Start Game</button>
@@ -26,9 +26,9 @@
       <div v-bind:class="{ 'hidden': showTimer }" class="flex flex-fluid flex-center half-margin-top">
         <Players></Players>
       </div>
-    </div>
-    <div v-if="showTimer">
-      <Timer></Timer>
+      <div v-if="showTimer">
+        <Timer></Timer>
+      </div>
     </div>
   </div>
 </template>
@@ -93,5 +93,8 @@ export default Vue.extend({
 @import '../../assets/variables.scss';
 .hidden {
     display: none !important;
+}
+.await-players {
+  height: 70vh;
 }
 </style>

@@ -5,8 +5,8 @@
         <h3>Space to Buzz In</h3>
         <h3 v-if="isOnline">Enter to Submit</h3>
         <BuzzerButton
-          :height="'300px'"
-          :width="'300px'"
+          :height="buzzerWidth"
+          :width="buzzerWidth"
           v-on:click="onBuzz()">
         </BuzzerButton>
         <div v-bind:class="{ 'hidden': !isOnline || !hasBuzzed || currentState === 'judgingAnswer' }" class="flex flex-fluid flex-center base-margin-top">
@@ -37,6 +37,7 @@ export default Vue.extend({
       currentState: (state: any) => state.currentState,
       isOnline: (state: any) => state.isOnline,
       hasBuzzed: (state: any) => state.activePlayer && state.activePlayer.username === state.currentUser.username,
+      buzzerWidth: (state: any) => state.isOnline ? '200px' : '300px',
     }),
   },
   watch: {

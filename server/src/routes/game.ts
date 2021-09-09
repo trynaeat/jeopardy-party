@@ -19,6 +19,7 @@ router.post('/game', async ctx => {
     roomId: id,
     gameBoard: board,
     isOnline: online,
+    buzzerTime: online ? 7000 : 5000,
   });
   const room = new Room(id, game);
   if (online) {

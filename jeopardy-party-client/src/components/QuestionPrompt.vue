@@ -4,9 +4,9 @@
       <h2 v-if="currentState === 'playerAnswer'">Currently Answering: {{ activePlayer.username }}</h2>
       <div class="flex flex-fluid" style="align-items: center;">
             <div>
-                <p v-html="activeQuestion.question"></p>
+                <p v-bind:class="{ 'compact': isOnline }" v-html="activeQuestion.question"></p>
                 <div class="base-margin-top" v-if="role === 'judge'">
-                    <div><p class="answer">Answer: {{ answer }}</p></div>
+                    <div><p v-bind:class="{ 'compact': isOnline }" class="answer">Answer: {{ answer }}</p></div>
                     <div v-if="activePlayer">
                         <button @click="judgeAnswer(true)">Correct</button>
                         <button class="base-margin-left" @click="judgeAnswer(false)">Incorrect</button>
@@ -34,6 +34,7 @@ export default Vue.extend({
           activePlayer: (state: any) => state.activePlayer,
           currentState: (state: any) => state.currentState,
           role: (state: any) => state.role,
+          isOnline: (state: any) => state.isOnline,
       }),
   },
   methods: {
@@ -61,6 +62,9 @@ p {
     font-size: 5vw;
     align-self: center;
     top: 50%;
+}
+p.compact {
+    font-size: 2vw;
 }
 p.answer {
     color: $yellow;
