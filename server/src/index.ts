@@ -49,7 +49,7 @@ app.use(gameRoutes.routes())
   .use(router.routes())
   .use(router.allowedMethods());
 
-
+let httpServer: http.Server | https.Server;
 try {
   if (config.https) {
     const httpsOptions = {
@@ -60,11 +60,9 @@ try {
       rejectUnauthorized: false
     };
 
-    https.createServer(httpsOptions, app.callback())
-      .listen(PORT, HOSTNAME);
+    httpServer = https.createServer(httpsOptions, app.callback());
   } else {
-    http.createServer(app.callback())
-      .listen(PORT, HOSTNAME);
+    httpServer = http.createServer(app.callback());
   }
 } catch (err) {
   logger.error('Http server error', err);
@@ -76,10 +74,12 @@ const db = new Pool(config.db);
 logger.info('DB Connected');
 app.context.db = db;
 try {
-  socketInitialize(lobby);
+  socketInitialize(lobby, httpServer);
 } catch (err) {
   logger.error('Socket server error', err);
 }
+
+httpServer.listen(PORT, HOSTNAME);
 
 
 logger.info(`Server listening on port ${PORT}`);

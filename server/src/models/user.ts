@@ -181,7 +181,7 @@ export class VirtualUser extends User {
 
 export function createBot (lobby: Lobby): Promise<VirtualUser> {
   return new Promise((resolve, reject) => {
-    const clientSocket = io('http://localhost:3001/bots');
+    const clientSocket = io('http://localhost:3000/bots');
     clientSocket.on('bot_initialized', (id: string) => {
       const user = lobby.getUser(id) as VirtualUser;
       if (!user) {

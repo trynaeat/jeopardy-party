@@ -8,7 +8,10 @@
       <button class="half-margin-left" @click="joinGame(gameId)">Join</button>
     </div>
     <h3>Want to host a new game? Click below</h3>
-    <button class="half-margin-top" @click="createGame()">Create New Game</button>
+    <div class="half-margin-top flex flex-center">
+      <button class="half-margin-right"><IconGear :width="'20px'"></IconGear></button>
+      <button @click="createGame()">Create New Game</button>
+    </div>
     <template v-if="createdGameId">
       <h4 class="half-margin-top">Your Game ID is {{ createdGameId }}</h4>
       <p>Give this code to your friends you would like to join</p>
@@ -18,9 +21,13 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import IconGear from './svg/gear/Gear.vue';
 
 export default Vue.extend({
   name: 'JoinGame',
+  components: {
+    IconGear,
+  },
   props: {
     msg: String,
     online: Boolean,

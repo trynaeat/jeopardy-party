@@ -15,7 +15,7 @@ Run from the root directory:
 
 This will spin up 3 containers:
 - client: serves the Vue.js development server at port 8080
-- server: serves HTTP API/WS servers at port 3000 & 3001. Uses ts-node for JIT TS compilation and nodemon to watch for changes and reboot automatically
+- server: serves HTTP API/WS servers at port 3000. Uses ts-node for JIT TS compilation and nodemon to watch for changes and reboot automatically
 - postgres: serves the postgres DB of questions utilized by the API server. Port 5432. Data is mounted to a local volume at `postgres/data_persist`
 
 # Production

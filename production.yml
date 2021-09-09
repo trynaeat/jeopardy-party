@@ -16,7 +16,6 @@ services:
       container_name: server
       ports:
         - "3000:3000"
-        - "3001:3001"
       restart: on-failure
     postgres:
       restart: on-failure

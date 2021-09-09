@@ -1,6 +1,8 @@
 <template>
 <div class="flex menu">
-  <button type="button" class="btn btn-primary menu-btn" @click="menuOpen = !menuOpen;">Menu</button>
+  <button type="button" class="btn btn-primary menu-btn" @click="menuOpen = !menuOpen;">
+    <img src="../images/hamburger.svg" alt="Hamburger Menu">
+  </button>
   <div class="base-margin-left" v-if="menuOpen">
     <button type="button" class="btn btn-primary" data-toggle="modal" @click="showModal = true;">Edit Signature</button>
   </div>

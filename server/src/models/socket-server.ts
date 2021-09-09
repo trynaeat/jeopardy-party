@@ -1,24 +1,19 @@
-import * as Koa from 'koa';
 import { Server } from 'socket.io';
 import * as socket from 'socket.io';
 import * as http from 'http';
+import * as https from 'https';
 import { v4 as uuidv4 } from 'uuid';
 
 import { Lobby } from './lobby';
 import { User, VirtualUser } from './user';
 import { Logger } from '../utils/logger';
 
-const SOCKET_PORT = 3001;
-const HOSTNAME = '0.0.0.0';
-
 let server: Server;
 let botServer: socket.Namespace
 
-export const initialize = (lobby: Lobby) =>  {
+export const initialize = (lobby: Lobby, httpServer: http.Server | https.Server) =>  {
   const logger = Logger.getLogger();
-  const app = new Koa();
-  const socketServer = http.createServer(app.callback());
-  const io = socket(socketServer);
+  const io = socket(httpServer);
   server = io;
   botServer = io.of('bots');
   io.on('connection', socket => {
@@ -36,9 +31,6 @@ export const initialize = (lobby: Lobby) =>  {
     lobby.addUser(new VirtualUser(uuid, socket));
     socket.emit('bot_initialized', socket.id);
   });
-
-  socketServer.listen(SOCKET_PORT, HOSTNAME);
-  logger.info(`Socket server listening on port ${SOCKET_PORT}`);
 }
 
 export const socketServer = () => {
